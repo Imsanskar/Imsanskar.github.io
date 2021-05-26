@@ -1,0 +1,14 @@
+# section information
+section:
+  name: About
+  id: about
+  enable: true
+  weight: 1
+  showOnNavbar: true
+
+# your designation
+designation: Student
+# your company information
+company:
+  name: Pulchowk Campus
+  url: "http://pcampus.edu.np/"
