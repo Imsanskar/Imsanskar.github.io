@@ -20,8 +20,14 @@ buttons:
 projects:
 - name: Baagchaal
   role: Contributor
-  timeline: "March 2018 - Present"
   repo: https://github.com/Imsanskar/BaagChaal-SFML/ # If your project is a public repo on GitHub, then provide this link. it will show star count.
   #url: ""  # If your project is not a public repo but it has a website or any external details url then provide it here. don't provide "repo" and "url" simultaneously.
   summary: Baagchaal game implemented in C++
   tags: ["C++", "Academic", "SFML"]
+  
+- name: Brownian Motion
+  role: Contributor
+  repo: https://github.com/Imsanskar/JS_Projects/tree/master/Brownian%20Motion/ # If your project is a public repo on GitHub, then provide this link. it will show star count.
+  #url: ""  # If your project is not a public repo but it has a website or any external details url then provide it here. don't provide "repo" and "url" simultaneously.
+  summary: Brownian Motion implemented in JS
+  tags: ["Hobby", "JS"]
