@@ -2,10 +2,11 @@ let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot")
 mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
 
-let rect_min = [-0.58, -0.5435277544383506]
-let rect_max = [-0.5155981075602742, -0.5005446357189197]
+let rect_min = [-0.5469222835916808, -0.5460876992863223]
+let rect_max = [-0.5428804992200343, -0.541211969923438]
 
-
+// let rect_min = [-0.5649658399209594, -0.5632633125141023]
+// let rect_max = [-0.5597451079968162, -0.5530003578299604 ]
 
 const vertexSource = `
 	attribute vec2 vertex;
@@ -33,11 +34,11 @@ const fragmentSource = `
 		return pow(v.x * v.x + v.y * v.y, 0.5);
 	}
 	
-	#define MAX_ITERATIONS 800
+	#define MAX_ITERATIONS 1000
 	#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 
-	float Radius = 7.5;
-	vec3 ColorWeight = vec3(3.0, 4.0, 5.0);
+	float Radius = 7.0;
+	vec3 ColorWeight = vec3(4.0, 5.0, 6.9);
 
 	int Diverge(inout vec2 c, float radius) {
 		vec2 z = vec2(0, 0);
@@ -54,12 +55,12 @@ const fragmentSource = `
 		return iter;
 	}
 
-	#define brightness 2.0
+	#define brightness 10.0
 
 	void main() {
 		vec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
 		float aspect_ratio = width / height;
-		vec2 z = rectMin + st * (rectMax - rectMin);
+		vec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);
 		int iterations = Diverge(z, Radius);
 		float luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));
 		vec3 color = ColorWeight * luminance;
