@@ -34,11 +34,11 @@ const fragmentSource = `
 		return pow(v.x * v.x + v.y * v.y, 0.5);
 	}
 	
-	#define MAX_ITERATIONS 1000
+	#define MAX_ITERATIONS 3000
 	#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 
-	float Radius = 7.0;
-	vec3 ColorWeight = vec3(4.0, 5.0, 6.9);
+	float Radius = 5.0;
+	vec3 ColorWeight = vec3(4.0, 4.0, 6.9);
 
 	int Diverge(inout vec2 c, float radius) {
 		vec2 z = vec2(0, 0);
@@ -55,7 +55,7 @@ const fragmentSource = `
 		return iter;
 	}
 
-	#define brightness 10.0
+	#define brightness 6.9
 
 	void main() {
 		vec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
@@ -191,23 +191,6 @@ function main() {
 requestAnimationFrame(main)
 
 
-let lastKnownScrollPosition = 0;
-let ticking = false;
-
-function handleScrollPosition(scollPos) {
-	let delta_scroll = scollPos -lastKnownScrollPosition
-	rect_min[0] -= 0.02 * delta_scroll
-	rect_min[1] -= 0.02 * delta_scroll
-	rect_max[0] += 0.02 * delta_scroll
-	rect_max[1] += 0.02 * delta_scroll
-}
-
-document.addEventListener('scroll', function(e) {
-	e.preventDefault()
-	handleScrollPosition(window.scrollY)
-	main()
-	lastKnownScrollPosition = window.scrollY;
-})
 
 document.addEventListener('dblclick', event => {
 	let canvasWidth = mandelbrot_element.width

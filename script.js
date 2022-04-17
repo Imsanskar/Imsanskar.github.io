@@ -6,7 +6,7 @@ var rect_max = [-0.5428804992200343, -0.541211969923438];
 // let rect_min = [-0.5649658399209594, -0.5632633125141023]
 // let rect_max = [-0.5597451079968162, -0.5530003578299604 ]
 var vertexSource = "\n\tattribute vec2 vertex;\n\n\tvoid main(){\n\t\tgl_Position = vec4(vertex, 0.0, 1.0);\n\t}\n";
-var fragmentSource = "\n\tprecision highp float;\n\tprecision highp int;\n\tuniform vec2 rectMin;\n\tuniform vec2 rectMax;\n\tuniform float width;\n\tuniform float height;\n\tuniform vec2 resolution;\n\n\tstruct Complex{\n\t\tfloat real, imag;\n\t}; \n\t\n\t\n\tfloat magnitude(vec2 v){\n\t\treturn pow(v.x * v.x + v.y * v.y, 0.5);\n\t}\n\t\n\t#define MAX_ITERATIONS 1000\n\t#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)\n\n\tfloat Radius = 7.0;\n\tvec3 ColorWeight = vec3(4.0, 5.0, 6.9);\n\n\tint Diverge(inout vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iter = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titer += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tc = z;\n\t\treturn iter;\n\t}\n\n\t#define brightness 10.0\n\n\tvoid main() {\n\t\tvec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);\n\t\tfloat aspect_ratio = width / height;\n\t\tvec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);\n\t\tint iterations = Diverge(z, Radius);\n\t\tfloat luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));\n\t\tvec3 color = ColorWeight * luminance;\n\t\tgl_FragColor = vec4(color, 1);\n  \t}\n";
+var fragmentSource = "\n\tprecision highp float;\n\tprecision highp int;\n\tuniform vec2 rectMin;\n\tuniform vec2 rectMax;\n\tuniform float width;\n\tuniform float height;\n\tuniform vec2 resolution;\n\n\tstruct Complex{\n\t\tfloat real, imag;\n\t}; \n\t\n\t\n\tfloat magnitude(vec2 v){\n\t\treturn pow(v.x * v.x + v.y * v.y, 0.5);\n\t}\n\t\n\t#define MAX_ITERATIONS 3000\n\t#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)\n\n\tfloat Radius = 5.0;\n\tvec3 ColorWeight = vec3(4.0, 4.0, 6.9);\n\n\tint Diverge(inout vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iter = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titer += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tc = z;\n\t\treturn iter;\n\t}\n\n\t#define brightness 6.9\n\n\tvoid main() {\n\t\tvec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);\n\t\tfloat aspect_ratio = width / height;\n\t\tvec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);\n\t\tint iterations = Diverge(z, Radius);\n\t\tfloat luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));\n\t\tvec3 color = ColorWeight * luminance;\n\t\tgl_FragColor = vec4(color, 1);\n  \t}\n";
 function load_shader(gl, type, source) {
     var shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -85,21 +85,6 @@ function main() {
     render(gl, program_info, position_buffer);
 }
 requestAnimationFrame(main);
-var lastKnownScrollPosition = 0;
-var ticking = false;
-function handleScrollPosition(scollPos) {
-    var delta_scroll = scollPos - lastKnownScrollPosition;
-    rect_min[0] -= 0.02 * delta_scroll;
-    rect_min[1] -= 0.02 * delta_scroll;
-    rect_max[0] += 0.02 * delta_scroll;
-    rect_max[1] += 0.02 * delta_scroll;
-}
-document.addEventListener('scroll', function (e) {
-    e.preventDefault();
-    handleScrollPosition(window.scrollY);
-    main();
-    lastKnownScrollPosition = window.scrollY;
-});
 document.addEventListener('dblclick', function (event) {
     var canvasWidth = mandelbrot_element.width;
     var canvasHeight = mandelbrot_element.height;
