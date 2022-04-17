@@ -2,8 +2,10 @@ let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot")
 mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
 
-let rect_min = [-2.5, -2.0]
-let rect_max = [2, 1.5]
+let rect_min = [-0.58, -0.5435277544383506]
+let rect_max = [-0.5155981075602742, -0.5005446357189197]
+
+
 
 const vertexSource = `
 	attribute vec2 vertex;
@@ -31,10 +33,10 @@ const fragmentSource = `
 		return pow(v.x * v.x + v.y * v.y, 0.5);
 	}
 	
-	#define MAX_ITERATIONS 250
+	#define MAX_ITERATIONS 800
 	#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 
-	float Radius = 5.0;
+	float Radius = 7.5;
 	vec3 ColorWeight = vec3(3.0, 4.0, 5.0);
 
 	int Diverge(inout vec2 c, float radius) {
@@ -204,5 +206,26 @@ document.addEventListener('scroll', function(e) {
 	handleScrollPosition(window.scrollY)
 	main()
 	lastKnownScrollPosition = window.scrollY;
+})
+
+document.addEventListener('dblclick', event => {
+	let canvasWidth = mandelbrot_element.width
+	let canvasHeight = mandelbrot_element.height
+	let zoomsize = 2
+	const selectedWidth = canvasWidth / zoomsize;
+	const selectedHeight = canvasHeight / zoomsize;
+
+	const initialX = (event.clientX - (selectedWidth / 2)) / canvasWidth;
+	const finalX = (event.clientX + (selectedWidth / 2)) / canvasWidth;
+	const initialY = (event.clientY - (selectedHeight / 2)) / canvasHeight;
+	const finalY = (event.clientY + (selectedHeight / 2)) / canvasHeight;
+
+	rect_min[0] = ((rect_max[0] - rect_min[0]) * initialX) + rect_min[0],
+	rect_max[0] = ((rect_max[0] - rect_min[0]) * finalX) + rect_min[0],
+
 	
+	rect_min[1] = ((rect_max[1] - rect_min[0]) * initialY) + rect_min[0]
+	rect_max[1] = ((rect_max[1] - rect_min[0]) * finalY) + rect_min[0]
+
+	main()
 })
