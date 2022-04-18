@@ -2,14 +2,17 @@ let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot")
 mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
 
-let rect_min = [-0.5469222835916808, -0.5460876992863223]
-let rect_max = [-0.5428804992200343, -0.541211969923438]
+// let rect_min = [-0.5469222835916808, -0.5460876992863223]
+// let rect_max = [-0.5428804992200343, -0.541211969923438]
 
 // let rect_min = [-0.5649658399209594, -0.5632633125141023]
 // let rect_max = [-0.5597451079968162, -0.5530003578299604 ]
 
 // -0.5469222835916808, -0.5460876992863223
 // [-0.5155981075602742, -0.5005446357189197]
+
+let rect_max = [-0.5432966514872561, -0.542811840814511]
+let rect_min = [-0.5455350253099542, -0.544973368507769]
 
 const vertexSource = `
 	attribute vec2 vertex;
