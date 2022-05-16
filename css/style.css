@@ -1,0 +1,123 @@
+*{
+    box-sizing: border-box;
+    border: 0;
+    margin: 0;
+    color: #a9a9f0;
+}
+
+canvas {
+    padding: 0;
+    margin: 0;
+    border: 0cm;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+/* Nav bar */
+.navbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 70px;
+    position: fixed;
+    top: 0;
+    padding: 0 30px;
+    transition: 0.5s;
+}
+
+.navbar.top{
+    background: transparent;
+}
+
+.navbar a{
+    margin: 0 5px;
+    padding: 10px 20px;
+    font-size: 250x;
+    text-decoration: none;
+    color: #a9a9f0;
+}
+
+.navbar a:hover{
+    border-bottom: #9e9ec6 2px solid;
+    color: #c0c0f5;
+}
+
+.navbar nav ul{
+    display: flex;
+    flex-direction: row;
+    list-style-type: none;
+}
+
+.navbar .logo{
+    font-weight: 400;
+}
+
+
+
+/* Content  */
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.title_top {
+    text-align: center;
+    position: relative;
+    margin-top: 70px;
+    padding: 3px;
+    font-size: 30px;
+    font-weight: bold;
+    color: #d3d3f8;
+}
+
+.intro {
+    color: #d3d3f8;
+    font-size: 20;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Projects section */
+.projects {
+    margin: 5px;
+    padding: 10px;
+    display: flex;
+    justify-items: center;
+    flex-direction: column;
+}   
+.title{
+    text-align: center;
+    padding: 3px;
+    font-size: 30px;
+    margin: 10px;
+    font-weight: bold;
+    color: #d3d3f8;
+}
+
+.project_tag {
+    display: flex;
+}
+
+.tag_btn {
+    margin: 5px;
+    border-radius: 3px;
+    padding: 5px;
+}
+
+.project_tag button:hover {
+    background-color: antiquewhite;
+}
+
+
+.project_card {
+    margin: 5px;
+    padding: 3px;
+    border-radius: 3px;
+}
+
