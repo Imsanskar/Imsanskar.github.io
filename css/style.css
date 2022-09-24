@@ -2,7 +2,7 @@
     box-sizing: border-box;
     border: 0;
     margin: 0;
-    color: #a9a9f0;
+    color: #0a0a20;
 }
 
 canvas {
@@ -37,12 +37,12 @@ canvas {
     padding: 10px 20px;
     font-size: 250x;
     text-decoration: none;
-    color: #a9a9f0;
+    color: #151524;
 }
 
 .navbar a:hover{
     border-bottom: #9e9ec6 2px solid;
-    color: #c0c0f5;
+    color: #2d2d42;
 }
 
 .navbar nav ul{
@@ -72,11 +72,11 @@ canvas {
     padding: 3px;
     font-size: 30px;
     font-weight: bold;
-    color: #d3d3f8;
+    color: #12121d;
 }
 
 .intro {
-    color: #d3d3f8;
+    color: #0f0f18;
     font-size: 20;
     align-items: center;
     justify-content: center;
@@ -97,7 +97,7 @@ canvas {
     font-size: 30px;
     margin: 10px;
     font-weight: bold;
-    color: #d3d3f8;
+    color: #36364b;
 }
 
 .project_tag {

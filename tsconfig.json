@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "ES5",
+            "ES2015",
+            "DOM",
+            "ScriptHost"
+        ]
+    },
+    "files": [
+        "script.ts"
+    ]
+}
