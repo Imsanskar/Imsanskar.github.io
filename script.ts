@@ -5,6 +5,7 @@ const fragmentSource = `
 	uniform vec2 rectMax;
 	uniform float width;
 	uniform float height;
+	uniform float time;
 	uniform vec2 resolution;
 
 	struct Complex{
@@ -84,7 +85,7 @@ const fragmentSource = `
 		}
 		
 		float hue1 = float(iterations) / float(MAX_ITERATIONS);
-		float hue2 = float(iterations + 1) / float(MAX_ITERATIONS);
+		float hue2 = float(iterations + 10) / float(MAX_ITERATIONS);
 		float hue = lerp(hue1, hue2, 1.0);
 		hue = MinHue + hue * (MaxHue - MinHue);
 
@@ -113,14 +114,51 @@ const fragmentSource = `
 		return color;
 	}
 
+	vec3 WaveColoringAnimated(vec2 c, float radius) {
+		vec2 z = vec2(0, 0);
+		int iterations = 0;
+		const float speed = 0.5;
+		for(int i = 0; i < MAX_ITERATIONS; i++) {
+			z = cproduct(z, z) + c;
+			iterations += 1;
+
+			if(length(z) >= radius) {
+				break;
+			} 
+		}
+
+		vec3 color;
+		const float Amount = 0.06;
+		color.z = 0.5 * sin(time * speed + Amount * float(iterations) + 4.188) + 0.5;
+		color.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.5;
+		color.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.5;
+		
+		return color;
+	}
+
+	vec3 SimpleColoring(vec2 c, float radius) {
+		vec2 z = vec2(0, 0);
+		int iterations = 0;
+		for(int i = 0; i < MAX_ITERATIONS; i++) {
+			z = cproduct(z, z) + c;
+			iterations += 1;
+
+			if(length(z) >= radius) {
+				break;
+			} 
+		}
+		float luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));
+		vec3 color = ColorWeight * luminance;
+		
+		return color;
+	}
+
 	void main() {
 		vec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
 		float aspect_ratio = width / height;
 		vec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);
 		// int iterations = Diverge(z, Radius);
-		// float luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));
-		// vec3 color = ColorWeight * luminance;
-		gl_FragColor = vec4(WaveColoring(z, Radius), 1);
+		gl_FragColor = vec4(WaveColoringAnimated(z, Radius), 1);
   	}
 `
 
@@ -235,10 +273,13 @@ async function render(gl:WebGLRenderingContext, program_info, buffers) {
 	gl.uniform1f(
 		program_info.uniform_locations.height, window.innerHeight
 	)
+	gl.uniform1f(
+		program_info.uniform_locations.time, (new Date().getTime() / 1000 ) % 100
+	)
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 } 
 
-function main() {
+async function main() {
 	const gl = mandelbrot_element.getContext("webgl")
 	if(gl == null) {
 		console.log("No open gl context found")
@@ -256,14 +297,12 @@ function main() {
 			rect_max: gl.getUniformLocation(shader_program, "rectMax"),
 			width: gl.getUniformLocation(shader_program, "width"),
 			height: gl.getUniformLocation(shader_program, "height"),
+			time: gl.getUniformLocation(shader_program, "time")
 		}
 	}
 	let position_buffer = init_buffer(gl)
 	render(gl, program_info, position_buffer)
 }
-
-requestAnimationFrame(main)
-
 
 function MapRange(from_x1: number, from_x2: number, to_x1: number, to_x2: number, x: number): number {
     return (to_x2 - to_x1) / (from_x2 - from_x1) * (x - from_x1) + to_x1;
@@ -362,6 +401,26 @@ document.addEventListener('keypress', event => {
 		rect_max[1] += cy;
 
 	}
-
 	main()
 })
+
+var start, tick = 0;
+var f = function() {
+	main()
+    if (!start) start = new Date().getTime();
+    var now = new Date().getTime();
+    if (now < start + tick*1000) {
+        setTimeout(f, 0);
+    } else {
+        tick++;
+        var diff = now - start;
+        var drift = diff % 1000;
+        setTimeout(f, 990);
+    }
+};
+
+if(navigator.userAgent.indexOf("Firefox") != -1 ) {
+		main()
+} else {
+	setTimeout(f, 990)
+}

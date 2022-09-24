@@ -121,3 +121,6 @@ canvas {
     border-radius: 3px;
 }
 
+canvas {
+    opacity: 0.5;
+}

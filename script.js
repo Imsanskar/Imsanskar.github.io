@@ -34,7 +34,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var fragmentSource = "\n\tprecision highp float;\n\tprecision highp int;\n\tuniform vec2 rectMin;\n\tuniform vec2 rectMax;\n\tuniform float width;\n\tuniform float height;\n\tuniform vec2 resolution;\n\n\tstruct Complex{\n\t\tfloat real, imag;\n\t}; \n\t\n\t\n\tfloat magnitude(vec2 v){\n\t\treturn pow(v.x * v.x + v.y * v.y, 0.5);\n\t}\n\t\n\t#define MAX_ITERATIONS 2000\n\t#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)\n\n\tfloat Radius = 4.0;\n\tvec3 ColorWeight = vec3(4.0, 4.0, 6.9);\n\n\tint Diverge(inout vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iter = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titer += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tc = z;\n\t\treturn iter;\n\t}\n\n\t#define brightness 6.9\n\n\tvec3 lerp(vec3 v0, vec3 v1, vec3 t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\t\n\tfloat lerp(float v0, float v1, float t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\tvec3 hsv2rgb(vec3 c) {\n\t\tvec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n\t\tvec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n\t\treturn c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n\t}\n\n\tvec3 SmoothColoring(vec2 c, float radius) {\t\n\t\tconst float Saturation = 1.0;\n\t\tconst float Value = 0.8;\n\t\tconst float MinHue = 0.1;\n\t\tconst float MaxHue = 0.8;\n\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tfloat value = 0.0;\n\t\tif (iterations < MAX_ITERATIONS) {\n\t\t\tfloat log_zn = log(z.x * z.x + z.y * z.y) / 2.0;\n\t\t\tfloat nu = log(log_zn / log(2.0)) / log(2.0);\n\t\t\t// Rearranging the potential function.\n\t\t\t// Dividing log_zn by log(2) instead of log(N = 1<<8)\n\t\t\t// because we want the entire palette to range from the\n\t\t\t// center to radius 2, NOT our bailout radius.\n\t\t\titerations = iterations + 1 - int(nu);\n\t\t\tvalue = Value;\n\t\t}\n\t\t\n\t\tfloat hue1 = float(iterations) / float(MAX_ITERATIONS);\n\t\tfloat hue2 = float(iterations + 1) / float(MAX_ITERATIONS);\n\t\tfloat hue = lerp(hue1, hue2, 1.0);\n\t\thue = MinHue + hue * (MaxHue - MinHue);\n\n\t\tvec3 color = hsv2rgb(vec3(hue, Saturation, value)); \n\t\treturn color;\n\t}\n\n\tvec3 WaveColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.7;\n\t\tcolor.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.5;\n\t\tcolor.x = 0.5 * sin(Amount * float(iterations)) + 0.5;\n\t\tcolor.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.5;\n\t\t\n\t\treturn color;\n\t}\n\n\tvoid main() {\n\t\tvec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);\n\t\tfloat aspect_ratio = width / height;\n\t\tvec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);\n\t\t// int iterations = Diverge(z, Radius);\n\t\t// float luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));\n\t\t// vec3 color = ColorWeight * luminance;\n\t\tgl_FragColor = vec4(WaveColoring(z, Radius), 1);\n  \t}\n";
+var fragmentSource = "\n\tprecision highp float;\n\tprecision highp int;\n\tuniform vec2 rectMin;\n\tuniform vec2 rectMax;\n\tuniform float width;\n\tuniform float height;\n\tuniform float time;\n\tuniform vec2 resolution;\n\n\tstruct Complex{\n\t\tfloat real, imag;\n\t}; \n\t\n\t\n\tfloat magnitude(vec2 v){\n\t\treturn pow(v.x * v.x + v.y * v.y, 0.5);\n\t}\n\t\n\t#define MAX_ITERATIONS 2000\n\t#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)\n\n\tfloat Radius = 4.0;\n\tvec3 ColorWeight = vec3(4.0, 4.0, 6.9);\n\n\tint Diverge(inout vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iter = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titer += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tc = z;\n\t\treturn iter;\n\t}\n\n\t#define brightness 6.9\n\n\tvec3 lerp(vec3 v0, vec3 v1, vec3 t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\t\n\tfloat lerp(float v0, float v1, float t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\tvec3 hsv2rgb(vec3 c) {\n\t\tvec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n\t\tvec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n\t\treturn c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n\t}\n\n\tvec3 SmoothColoring(vec2 c, float radius) {\t\n\t\tconst float Saturation = 1.0;\n\t\tconst float Value = 0.8;\n\t\tconst float MinHue = 0.1;\n\t\tconst float MaxHue = 0.8;\n\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tfloat value = 0.0;\n\t\tif (iterations < MAX_ITERATIONS) {\n\t\t\tfloat log_zn = log(z.x * z.x + z.y * z.y) / 2.0;\n\t\t\tfloat nu = log(log_zn / log(2.0)) / log(2.0);\n\t\t\t// Rearranging the potential function.\n\t\t\t// Dividing log_zn by log(2) instead of log(N = 1<<8)\n\t\t\t// because we want the entire palette to range from the\n\t\t\t// center to radius 2, NOT our bailout radius.\n\t\t\titerations = iterations + 1 - int(nu);\n\t\t\tvalue = Value;\n\t\t}\n\t\t\n\t\tfloat hue1 = float(iterations) / float(MAX_ITERATIONS);\n\t\tfloat hue2 = float(iterations + 10) / float(MAX_ITERATIONS);\n\t\tfloat hue = lerp(hue1, hue2, 1.0);\n\t\thue = MinHue + hue * (MaxHue - MinHue);\n\n\t\tvec3 color = hsv2rgb(vec3(hue, Saturation, value)); \n\t\treturn color;\n\t}\n\n\tvec3 WaveColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.7;\n\t\tcolor.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.5;\n\t\tcolor.x = 0.5 * sin(Amount * float(iterations)) + 0.5;\n\t\tcolor.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.5;\n\t\t\n\t\treturn color;\n\t}\n\n\tvec3 WaveColoringAnimated(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tconst float speed = 0.5;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.06;\n\t\tcolor.z = 0.5 * sin(time * speed + Amount * float(iterations) + 4.188) + 0.5;\n\t\tcolor.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.5;\n\t\tcolor.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.5;\n\t\t\n\t\treturn color;\n\t}\n\n\tvec3 SimpleColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tfloat luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));\n\t\tvec3 color = ColorWeight * luminance;\n\t\t\n\t\treturn color;\n\t}\n\n\tvoid main() {\n\t\tvec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);\n\t\tfloat aspect_ratio = width / height;\n\t\tvec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);\n\t\t// int iterations = Diverge(z, Radius);\n\t\tgl_FragColor = vec4(WaveColoringAnimated(z, Radius), 1);\n  \t}\n";
 var mandelbrot_element = document.querySelector("#mandlebrot");
 mandelbrot_element.width = window.innerWidth;
 mandelbrot_element.height = window.innerHeight;
@@ -97,34 +97,41 @@ function render(gl, program_info, buffers) {
             gl.uniform2f(program_info.uniform_locations.rect_max, rect_max[0], rect_max[1]);
             gl.uniform1f(program_info.uniform_locations.width, window.innerWidth);
             gl.uniform1f(program_info.uniform_locations.height, window.innerHeight);
+            gl.uniform1f(program_info.uniform_locations.time, (new Date().getTime() / 1000) % 100);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             return [2 /*return*/];
         });
     });
 }
 function main() {
-    var gl = mandelbrot_element.getContext("webgl");
-    if (gl == null) {
-        console.log("No open gl context found");
-        alert("No open gl context found");
-    }
-    var shader_program = intialize_shader_program(gl);
-    var program_info = {
-        program: shader_program,
-        attrib_location: {
-            vertex_position: gl.getAttribLocation(shader_program, "vertex")
-        },
-        uniform_locations: {
-            rect_min: gl.getUniformLocation(shader_program, "rectMin"),
-            rect_max: gl.getUniformLocation(shader_program, "rectMax"),
-            width: gl.getUniformLocation(shader_program, "width"),
-            height: gl.getUniformLocation(shader_program, "height")
-        }
-    };
-    var position_buffer = init_buffer(gl);
-    render(gl, program_info, position_buffer);
+    return __awaiter(this, void 0, void 0, function () {
+        var gl, shader_program, program_info, position_buffer;
+        return __generator(this, function (_a) {
+            gl = mandelbrot_element.getContext("webgl");
+            if (gl == null) {
+                console.log("No open gl context found");
+                alert("No open gl context found");
+            }
+            shader_program = intialize_shader_program(gl);
+            program_info = {
+                program: shader_program,
+                attrib_location: {
+                    vertex_position: gl.getAttribLocation(shader_program, "vertex")
+                },
+                uniform_locations: {
+                    rect_min: gl.getUniformLocation(shader_program, "rectMin"),
+                    rect_max: gl.getUniformLocation(shader_program, "rectMax"),
+                    width: gl.getUniformLocation(shader_program, "width"),
+                    height: gl.getUniformLocation(shader_program, "height"),
+                    time: gl.getUniformLocation(shader_program, "time")
+                }
+            };
+            position_buffer = init_buffer(gl);
+            render(gl, program_info, position_buffer);
+            return [2 /*return*/];
+        });
+    });
 }
-requestAnimationFrame(main);
 function MapRange(from_x1, from_x2, to_x1, to_x2, x) {
     return (to_x2 - to_x1) / (from_x2 - from_x1) * (x - from_x1) + to_x1;
 }
@@ -209,3 +216,25 @@ document.addEventListener('keypress', function (event) {
     }
     main();
 });
+var start, tick = 0;
+var f = function () {
+    main();
+    if (!start)
+        start = new Date().getTime();
+    var now = new Date().getTime();
+    if (now < start + tick * 1000) {
+        setTimeout(f, 0);
+    }
+    else {
+        tick++;
+        var diff = now - start;
+        var drift = diff % 1000;
+        setTimeout(f, 990);
+    }
+};
+if (navigator.userAgent.indexOf("Firefox") != -1) {
+    main();
+}
+else {
+    setTimeout(f, 990);
+}
