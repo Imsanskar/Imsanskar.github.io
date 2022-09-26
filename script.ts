@@ -57,7 +57,7 @@ const fragmentSource = `
 
 	vec3 SmoothColoring(vec2 c, float radius) {	
 		const float Saturation = 1.0;
-		const float Value = 0.8;
+		const float Value = 0.5;
 		const float MinHue = 0.1;
 		const float MaxHue = 0.8;
 
@@ -87,7 +87,7 @@ const fragmentSource = `
 		float hue1 = float(iterations) / float(MAX_ITERATIONS);
 		float hue2 = float(iterations + 10) / float(MAX_ITERATIONS);
 		float hue = lerp(hue1, hue2, 1.0);
-		hue = MinHue + hue * (MaxHue - MinHue);
+		hue = MinHue + hue1 * (MaxHue - MinHue);
 
 		vec3 color = hsv2rgb(vec3(hue, Saturation, value)); 
 		return color;
@@ -129,11 +129,11 @@ const fragmentSource = `
 
 		vec3 color;
 		const float Amount = 0.06;
-		color.z = 0.5 * sin(time * speed + Amount * float(iterations) + 4.188) + 0.5;
-		color.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.5;
-		color.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.5;
+		color.z = 0.5 * sin(time * speed + Amount * float(iterations) + 4.188) + 0.3;
+		color.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.5 + 0.2;
+		color.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.3;
 		
-		return color;
+		return color / 1.5;
 	}
 
 	vec3 SimpleColoring(vec2 c, float radius) {
@@ -158,7 +158,7 @@ const fragmentSource = `
 		float aspect_ratio = width / height;
 		vec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);
 		// int iterations = Diverge(z, Radius);
-		gl_FragColor = vec4(WaveColoringAnimated(z, Radius), 1);
+		gl_FragColor = vec4(SimpleColoring(z, Radius), 1);
   	}
 `
 
@@ -169,8 +169,11 @@ let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot")
 mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
 
-let rect_max = [-0.2794752118323775, -0.5297359079192027]
-let rect_min = [-0.6425349277723049, -0.6626432440196919]
+// let rect_max = [ -0.37825498624348763, -0.599601710877615 ]
+// let rect_min = [ -0.3901103351130718, -0.6039416658977393 ]
+let rect_max = [ -0.3879056456676314, -0.5961265063044972 ];
+let rect_min = [ -0.3965481949935583, -0.5992903335141678 ];
+
 
 const vertexSource = `
 	attribute vec2 vertex;
@@ -318,21 +321,25 @@ document.addEventListener("mousemove", event => {
 document.addEventListener('dblclick', event => {
 	let canvasWidth = mandelbrot_element.width
 	let canvasHeight = mandelbrot_element.height
-	let zoomsize = 2
-	const selectedWidth = canvasWidth / zoomsize;
-	const selectedHeight = canvasHeight / zoomsize;
 
-	const initialX = (event.clientX - (selectedWidth / 2)) / canvasWidth;
-	const finalX = (event.clientX + (selectedWidth / 2)) / canvasWidth;
-	const initialY = (event.clientY - (selectedHeight / 2)) / canvasHeight;
-	const finalY = (event.clientY + (selectedHeight / 2)) / canvasHeight;
+	let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mouse_x);
+	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mouse_y);
+	rect_min[0] -= cx;
+	rect_max[0] -= cx;
+	rect_min[1] -= cy;
+	rect_max[1] -= cy;
 
-	rect_min[0] = ((rect_max[0] - rect_min[0]) * initialX) + rect_min[0],
-	rect_max[0] = ((rect_max[0] - rect_min[0]) * finalX) + rect_min[0],
+	let factor = 0.9;
 
+	rect_min[0] *= factor;
+	rect_max[0] *= factor;
+	rect_min[1] *= factor;
+	rect_max[1] *= factor;
 	
-	rect_min[1] = ((rect_max[1] - rect_min[0]) * initialY) + rect_min[0]
-	rect_max[1] = ((rect_max[1] - rect_min[0]) * finalY) + rect_min[0]
+	rect_min[0] += cx;
+	rect_max[0] += cx;
+	rect_min[1] += cy;
+	rect_max[1] += cy;
 
 	main()
 })
@@ -342,7 +349,7 @@ document.addEventListener('scroll', event => {
 	let canvasHeight = mandelbrot_element.height
 
 	let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mouse_x);
-	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], canvasHeight - mouse_y);
+	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mouse_y);
 	rect_min[0] -= cx;
 	rect_max[0] -= cx;
 	rect_min[1] -= cy;
@@ -364,7 +371,7 @@ document.addEventListener('scroll', event => {
 })
 
 document.addEventListener('keypress', event => {
-	let factor = 0.01
+	let factor = (rect_max[0] - rect_min[0] + rect_max[1] - rect_min[1]) / 4
 	if (event.key == 'w') {
 		rect_max[1] += factor
 		rect_min[1] += factor 
@@ -382,7 +389,7 @@ document.addEventListener('keypress', event => {
 		let canvasHeight = mandelbrot_element.height
 
 		let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mouse_x);
-		let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], canvasHeight - mouse_y);
+		let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mouse_y);
 		rect_min[0] -= cx;
 		rect_max[0] -= cx;
 		rect_min[1] -= cy;
@@ -399,7 +406,6 @@ document.addEventListener('keypress', event => {
 		rect_max[0] += cx;
 		rect_min[1] += cy;
 		rect_max[1] += cy;
-
 	}
 	main()
 })
@@ -420,7 +426,7 @@ var f = function() {
 };
 
 if(navigator.userAgent.indexOf("Firefox") != -1 ) {
-		main()
+	requestAnimationFrame(main)
 } else {
 	setTimeout(f, 990)
 }
