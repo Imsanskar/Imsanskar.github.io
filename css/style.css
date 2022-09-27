@@ -24,12 +24,13 @@ canvas {
     height: 70px;
     position: fixed;
     top: 0;
-    padding: 0 30px;
+    padding: 20px 30px 30px 10px;
     transition: 0.5s;
 }
 
 .navbar.top{
-    background: transparent;
+    /* background: transparent; */
+    opacity: 0.8;
 }
 
 .navbar a{
@@ -123,4 +124,11 @@ canvas {
 
 canvas {
     opacity: 0.5;
+}
+
+#navbar_btn {
+    background: transparent;
+    position: fixed;
+    right: 0;
+    padding: 0 20px 0 0;
 }

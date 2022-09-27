@@ -7,6 +7,7 @@ const fragmentSource = `
 	uniform float height;
 	uniform float time;
 	uniform vec2 resolution;
+	uniform int coloring_method;
 
 	struct Complex{
 		float real, imag;
@@ -106,10 +107,10 @@ const fragmentSource = `
 		}
 
 		vec3 color;
-		const float Amount = 0.7;
-		color.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.5;
-		color.x = 0.5 * sin(Amount * float(iterations)) + 0.5;
-		color.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.5;
+		const float Amount = 0.2;
+		color.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.3;
+		color.x = 0.5 * sin(Amount * float(iterations)) + 0.2;
+		color.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.3;
 		
 		return color;
 	}
@@ -128,9 +129,9 @@ const fragmentSource = `
 		}
 
 		vec3 color;
-		const float Amount = 0.06;
+		const float Amount = 0.15;
 		color.z = 0.5 * sin(time * speed + Amount * float(iterations) + 4.188) + 0.3;
-		color.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.5 + 0.2;
+		color.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.2;
 		color.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.3;
 		
 		return color / 1.5;
@@ -158,22 +159,21 @@ const fragmentSource = `
 		float aspect_ratio = width / height;
 		vec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);
 		// int iterations = Diverge(z, Radius);
-		gl_FragColor = vec4(SimpleColoring(z, Radius), 1);
+		vec3 color;
+		if (coloring_method == 0) {
+			color = SimpleColoring(z, Radius);
+		} else if (coloring_method == 1) {
+			color = SmoothColoring(z, Radius);
+		} else if (coloring_method == 2) {
+			color = WaveColoring(z, Radius);
+		} else if (coloring_method == 3) {
+			color = WaveColoringAnimated(z, Radius);
+		} else {
+
+		}
+		gl_FragColor = vec4(color, 1);
   	}
 `
-
-
-
-
-let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot");
-mandelbrot_element.width = window.innerWidth
-mandelbrot_element.height = window.innerHeight
-
-// let rect_max = [ -0.37825498624348763, -0.599601710877615 ]
-// let rect_min = [ -0.3901103351130718, -0.6039416658977393 ]
-let rect_max = [ -0.3879056456676314, -0.5961265063044972 ];
-let rect_min = [ -0.3965481949935583, -0.5992903335141678 ];
-
 
 const vertexSource = `
 	attribute vec2 vertex;
@@ -182,6 +182,21 @@ const vertexSource = `
 		gl_Position = vec4(vertex, 0.0, 1.0);
 	}
 `
+
+// width and height of mandelbrot
+let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot");
+mandelbrot_element.width = window.innerWidth
+mandelbrot_element.height = window.innerHeight
+
+// coloring index
+var color_index = 0;
+let color_btn = document.getElementById("navbar_btn");
+color_btn.onclick = color_button_on_click;
+
+// let rect_max = [ -0.37825498624348763, -0.599601710877615 ]
+// let rect_min = [ -0.3901103351130718, -0.6039416658977393 ]
+let rect_max = [ -0.3879056456676314, -0.5961265063044972 ];
+let rect_min = [ -0.3965481949935583, -0.5992903335141678 ];
 
 function load_shader(gl:WebGLRenderingContext, type:number, source:string): WebGLShader | null {
 	let shader: WebGLShader = gl.createShader(type)
@@ -279,6 +294,9 @@ async function render(gl:WebGLRenderingContext, program_info, buffers) {
 	gl.uniform1f(
 		program_info.uniform_locations.time, (new Date().getTime() / 1000 ) % 100
 	)
+	gl.uniform1i(
+		program_info.uniform_locations.coloring_method, color_index
+	)
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 } 
 
@@ -300,7 +318,8 @@ async function main() {
 			rect_max: gl.getUniformLocation(shader_program, "rectMax"),
 			width: gl.getUniformLocation(shader_program, "width"),
 			height: gl.getUniformLocation(shader_program, "height"),
-			time: gl.getUniformLocation(shader_program, "time")
+			time: gl.getUniformLocation(shader_program, "time"),
+			coloring_method: gl.getUniformLocation(shader_program, "coloring_method")
 		}
 	}
 	let position_buffer = init_buffer(gl)
@@ -421,12 +440,19 @@ var f = function() {
         tick++;
         var diff = now - start;
         var drift = diff % 1000;
-        setTimeout(f, 990);
+        setTimeout(f, 300);
     }
 };
 
 if(navigator.userAgent.indexOf("Firefox") != -1 ) {
 	requestAnimationFrame(main)
 } else {
-	setTimeout(f, 990)
+	setTimeout(f, 300)
+}
+
+
+// button click
+function color_button_on_click() {
+	color_index = (color_index + 1) % 4
+	main()
 }
