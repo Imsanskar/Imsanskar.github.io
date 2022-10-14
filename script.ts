@@ -18,10 +18,10 @@ const fragmentSource = `
 		return pow(v.x * v.x + v.y * v.y, 0.5);
 	}
 	
-	#define MAX_ITERATIONS 2000
+	#define MAX_ITERATIONS 500
 	#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 
-	float Radius = 4.0;
+	float Radius = 2.0;
 	vec3 ColorWeight = vec3(4.0, 4.0, 6.9);
 
 	int Diverge(inout vec2 c, float radius) {
@@ -171,7 +171,7 @@ const fragmentSource = `
 		} else {
 
 		}
-		gl_FragColor = vec4(color, 1);
+		gl_FragColor = vec4(color * vec3(0.4), 1);
   	}
 `
 
@@ -189,7 +189,7 @@ mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
 
 // coloring index
-var color_index = 0;
+var color_index = 3;
 let color_btn = document.getElementById("navbar_btn");
 color_btn.onclick = color_button_on_click;
 
@@ -440,14 +440,15 @@ var f = function() {
         tick++;
         var diff = now - start;
         var drift = diff % 1000;
-        setTimeout(f, 300);
+        setTimeout(f, 500 );
     }
 };
 
 if(navigator.userAgent.indexOf("Firefox") != -1 ) {
 	requestAnimationFrame(main)
 } else {
-	setTimeout(f, 300)
+	main()
+	setTimeout(f, 500)
 }
 
 
