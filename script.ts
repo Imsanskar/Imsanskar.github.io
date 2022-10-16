@@ -21,7 +21,7 @@ const fragmentSource = `
 	#define MAX_ITERATIONS 500
 	#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 
-	float Radius = 2.0;
+	float Radius = 3.0;
 	vec3 ColorWeight = vec3(4.0, 4.0, 6.9);
 
 	int Diverge(inout vec2 c, float radius) {
@@ -39,7 +39,7 @@ const fragmentSource = `
 		return iter;
 	}
 
-	#define brightness 6.9
+	#define brightness 2.9
 
 	vec3 lerp(vec3 v0, vec3 v1, vec3 t) {
 		return v0 + t * (v1 - v0);
@@ -108,7 +108,7 @@ const fragmentSource = `
 
 		vec3 color;
 		const float Amount = 0.2;
-		color.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.3;
+		color.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.2;
 		color.x = 0.5 * sin(Amount * float(iterations)) + 0.2;
 		color.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.3;
 		
@@ -118,7 +118,7 @@ const fragmentSource = `
 	vec3 WaveColoringAnimated(vec2 c, float radius) {
 		vec2 z = vec2(0, 0);
 		int iterations = 0;
-		const float speed = 0.5;
+		const float speed = 0.25;
 		for(int i = 0; i < MAX_ITERATIONS; i++) {
 			z = cproduct(z, z) + c;
 			iterations += 1;
@@ -130,11 +130,12 @@ const fragmentSource = `
 
 		vec3 color;
 		const float Amount = 0.15;
-		color.z = 0.5 * sin(time * speed + Amount * float(iterations) + 4.188) + 0.3;
-		color.x = 0.5 * sin(time * speed + Amount * float(iterations)) + 0.2;
+		
+		color.z = 0.5 * cos(time * speed + Amount * float(iterations) + 4.188) + 0.2;
+		color.x = 0.5 * cos(time * speed + Amount * float(iterations)) + 0.2;
 		color.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.3;
 		
-		return color / 1.5;
+		return color;
 	}
 
 	vec3 SimpleColoring(vec2 c, float radius) {
@@ -151,7 +152,7 @@ const fragmentSource = `
 		float luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));
 		vec3 color = ColorWeight * luminance;
 		
-		return color;
+		return color / 1.25;
 	}
 
 	void main() {
@@ -161,12 +162,10 @@ const fragmentSource = `
 		// int iterations = Diverge(z, Radius);
 		vec3 color;
 		if (coloring_method == 0) {
-			color = SimpleColoring(z, Radius);
+			color = SimpleColoring(z, Radius) * vec3(0.2);
 		} else if (coloring_method == 1) {
 			color = SmoothColoring(z, Radius);
 		} else if (coloring_method == 2) {
-			color = WaveColoring(z, Radius);
-		} else if (coloring_method == 3) {
 			color = WaveColoringAnimated(z, Radius);
 		} else {
 
@@ -187,9 +186,14 @@ const vertexSource = `
 let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot");
 mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
+let gl: WebGLRenderingContext = mandelbrot_element.getContext("webgl")
+
+//scroll zoom
+let body_offset = 0;
 
 // coloring index
-var color_index = 3;
+const total_colors = 3;
+var color_index = total_colors - 1;
 let color_btn = document.getElementById("navbar_btn");
 color_btn.onclick = color_button_on_click;
 
@@ -197,6 +201,13 @@ color_btn.onclick = color_button_on_click;
 // let rect_min = [ -0.3901103351130718, -0.6039416658977393 ]
 let rect_max = [ -0.3879056456676314, -0.5961265063044972 ];
 let rect_min = [ -0.3965481949935583, -0.5992903335141678 ];
+
+if (window.innerHeight * window.innerHeight < 370944) {
+	rect_max = [-0.37905086326593324, -0.5961265063044972]
+	rect_min =  [-0.38769341259186013, -0.5992903335141678]
+
+}
+
 
 function load_shader(gl:WebGLRenderingContext, type:number, source:string): WebGLShader | null {
 	let shader: WebGLShader = gl.createShader(type)
@@ -259,9 +270,7 @@ let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function render(gl:WebGLRenderingContext, program_info, buffers) {
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
 	gl.clearDepth(1.0);                 // Clear everything
-	gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-	gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-  
+
 	// Clear the canvas before we start drawing on it.
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -286,10 +295,10 @@ async function render(gl:WebGLRenderingContext, program_info, buffers) {
 		program_info.uniform_locations.rect_max, rect_max[0], rect_max[1]
 	)
 	gl.uniform1f(	
-		program_info.uniform_locations.width, window.innerWidth
+		program_info.uniform_locations.width, mandelbrot_element.width
 	)
 	gl.uniform1f(
-		program_info.uniform_locations.height, window.innerHeight
+		program_info.uniform_locations.height, mandelbrot_element.height
 	)
 	gl.uniform1f(
 		program_info.uniform_locations.time, (new Date().getTime() / 1000 ) % 100
@@ -305,6 +314,7 @@ async function main() {
 	if(gl == null) {
 		console.log("No open gl context found")
 		alert("No open gl context found")
+		return ;
 	}
 
 	const shader_program = intialize_shader_program(gl)
@@ -330,19 +340,17 @@ function MapRange(from_x1: number, from_x2: number, to_x1: number, to_x2: number
     return (to_x2 - to_x1) / (from_x2 - from_x1) * (x - from_x1) + to_x1;
 }
 
-var mouse_x = 0
-var mouse_y = 0
-document.addEventListener("mousemove", event => {
-	mouse_x = event.clientX
-	mouse_y = event.clientY
-})
+// document.addEventListener("mousemove", event => {
+// 	mouse_x = event.clientX
+// 	mouse_y = event.clientY
+// })
 
 document.addEventListener('dblclick', event => {
 	let canvasWidth = mandelbrot_element.width
 	let canvasHeight = mandelbrot_element.height
 
-	let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mouse_x);
-	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mouse_y);
+	let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mandelbrot_element.width / 2);
+	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mandelbrot_element.height / 2);
 	rect_min[0] -= cx;
 	rect_max[0] -= cx;
 	rect_min[1] -= cy;
@@ -367,14 +375,16 @@ document.addEventListener('scroll', event => {
 	let canvasWidth = mandelbrot_element.width
 	let canvasHeight = mandelbrot_element.height
 
-	let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mouse_x);
-	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mouse_y);
+	let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mandelbrot_element.width / 2);
+	let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mandelbrot_element.height / 2);
 	rect_min[0] -= cx;
 	rect_max[0] -= cx;
 	rect_min[1] -= cy;
 	rect_max[1] -= cy;
 
-	let factor = -2;
+	let offset = window.scrollY - body_offset
+	let factor = offset > 0? 0.9: 1.1;
+	body_offset = window.scrollY
 
 	rect_min[0] *= factor;
 	rect_max[0] *= factor;
@@ -407,8 +417,8 @@ document.addEventListener('keypress', event => {
 		let canvasWidth = mandelbrot_element.width
 		let canvasHeight = mandelbrot_element.height
 
-		let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mouse_x);
-		let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mouse_y);
+		let cx: number = MapRange(0, canvasWidth, rect_min[0], rect_max[0], mandelbrot_element.width / 2);
+		let cy: number = MapRange(0, canvasHeight, rect_min[1], rect_max[1], mandelbrot_element.width / 2);
 		rect_min[0] -= cx;
 		rect_max[0] -= cx;
 		rect_min[1] -= cy;
@@ -428,6 +438,17 @@ document.addEventListener('keypress', event => {
 	}
 	main()
 })
+
+function window_resize_handler() {
+	mandelbrot_element = document.querySelector("#mandlebrot");
+	mandelbrot_element.width = window.innerWidth
+	mandelbrot_element.height = window.innerHeight
+	console.log(mandelbrot_element.width, window.innerHeight)
+	gl.viewport(0, 0, mandelbrot_element.width, mandelbrot_element.height)
+	main()
+}
+window.onresize = window_resize_handler
+
 
 var start, tick = 0;
 var f = function() {
@@ -454,6 +475,6 @@ if(navigator.userAgent.indexOf("Firefox") != -1 ) {
 
 // button click
 function color_button_on_click() {
-	color_index = (color_index + 1) % 4
+	color_index = (color_index + 1) % total_colors
 	main()
 }

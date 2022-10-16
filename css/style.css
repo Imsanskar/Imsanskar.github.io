@@ -10,9 +10,11 @@ canvas {
     margin: 0;
     border: 0cm;
     position: fixed;
+    align-items: center;
     top: 0;
     left: 0;
     z-index: -1;
+    border: #9e9ec6 5px;
 }
 
 #home {
