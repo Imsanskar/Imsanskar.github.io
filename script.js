@@ -34,13 +34,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var fragmentSource = "\n\tprecision highp float;\n\tprecision highp int;\n\tuniform vec2 rectMin;\n\tuniform vec2 rectMax;\n\tuniform float width;\n\tuniform float height;\n\tuniform float time;\n\tuniform vec2 resolution;\n\tuniform int coloring_method;\n\n\tstruct Complex{\n\t\tfloat real, imag;\n\t}; \n\t\n\t\n\tfloat magnitude(vec2 v){\n\t\treturn pow(v.x * v.x + v.y * v.y, 0.5);\n\t}\n\t\n\t#define MAX_ITERATIONS 500\n\t#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)\n\n\tfloat Radius = 3.0;\n\tvec3 ColorWeight = vec3(4.0, 4.0, 6.9);\n\n\tint Diverge(inout vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iter = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titer += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tc = z;\n\t\treturn iter;\n\t}\n\n\t#define brightness 2.9\n\n\tvec3 lerp(vec3 v0, vec3 v1, vec3 t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\t\n\tfloat lerp(float v0, float v1, float t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\tvec3 hsv2rgb(vec3 c) {\n\t\tvec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n\t\tvec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n\t\treturn c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n\t}\n\n\tvec3 SmoothColoring(vec2 c, float radius) {\t\n\t\tconst float Saturation = 1.0;\n\t\tconst float Value = 0.5;\n\t\tconst float MinHue = 0.1;\n\t\tconst float MaxHue = 0.8;\n\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tfloat value = 0.0;\n\t\tif (iterations < MAX_ITERATIONS) {\n\t\t\tfloat log_zn = log(z.x * z.x + z.y * z.y) / 2.0;\n\t\t\tfloat nu = log(log_zn / log(2.0)) / log(2.0);\n\t\t\t// Rearranging the potential function.\n\t\t\t// Dividing log_zn by log(2) instead of log(N = 1<<8)\n\t\t\t// because we want the entire palette to range from the\n\t\t\t// center to radius 2, NOT our bailout radius.\n\t\t\titerations = iterations + 1 - int(nu);\n\t\t\tvalue = Value;\n\t\t}\n\t\t\n\t\tfloat hue1 = float(iterations) / float(MAX_ITERATIONS);\n\t\tfloat hue2 = float(iterations + 10) / float(MAX_ITERATIONS);\n\t\tfloat hue = lerp(hue1, hue2, 1.0);\n\t\thue = MinHue + hue1 * (MaxHue - MinHue);\n\n\t\tvec3 color = hsv2rgb(vec3(hue, Saturation, value)); \n\t\treturn color;\n\t}\n\n\tvec3 WaveColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.2;\n\t\tcolor.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.2;\n\t\tcolor.x = 0.5 * sin(Amount * float(iterations)) + 0.2;\n\t\tcolor.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.3;\n\t\t\n\t\treturn color;\n\t}\n\n\tvec3 WaveColoringAnimated(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tconst float speed = 0.25;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.15;\n\t\t\n\t\tcolor.z = 0.5 * cos(time * speed + Amount * float(iterations) + 4.188) + 0.2;\n\t\tcolor.x = 0.5 * cos(time * speed + Amount * float(iterations)) + 0.2;\n\t\tcolor.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.3;\n\t\t\n\t\treturn color;\n\t}\n\n\tvec3 SimpleColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tfloat luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));\n\t\tvec3 color = ColorWeight * luminance;\n\t\t\n\t\treturn color / 1.25;\n\t}\n\n\tvoid main() {\n\t\tvec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);\n\t\tfloat aspect_ratio = width / height;\n\t\tvec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);\n\t\t// int iterations = Diverge(z, Radius);\n\t\tvec3 color;\n\t\tif (coloring_method == 0) {\n\t\t\tcolor = SimpleColoring(z, Radius) * vec3(0.2);\n\t\t} else if (coloring_method == 1) {\n\t\t\tcolor = SmoothColoring(z, Radius);\n\t\t} else if (coloring_method == 2) {\n\t\t\tcolor = WaveColoringAnimated(z, Radius);\n\t\t} else {\n\n\t\t}\n\t\tgl_FragColor = vec4(color * vec3(0.4), 1);\n  \t}\n";
+var fragmentSource = "\n\tprecision highp float;\n\tprecision highp int;\n\tuniform vec2 rectMin;\n\tuniform vec2 rectMax;\n\tuniform float width;\n\tuniform float height;\n\tuniform float time;\n\tuniform vec2 resolution;\n\tuniform int coloring_method;\n\n\tstruct Complex{\n\t\tfloat real, imag;\n\t}; \n\t\n\t\n\tfloat magnitude(vec2 v){\n\t\treturn pow(v.x * v.x + v.y * v.y, 0.5);\n\t}\n\t\n\t#define MAX_ITERATIONS 1000\n\t#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)\n\n\tfloat Radius = 3.0;\n\tvec3 ColorWeight = vec3(4.0, 4.0, 6.9);\n\n\tint Diverge(inout vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iter = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titer += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tc = z;\n\t\treturn iter;\n\t}\n\n\t#define brightness 2.9\n\n\tvec3 lerp(vec3 v0, vec3 v1, vec3 t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\t\n\tfloat lerp(float v0, float v1, float t) {\n\t\treturn v0 + t * (v1 - v0);\n\t}\n\n\tvec3 hsv2rgb(vec3 c) {\n\t\tvec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n\t\tvec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n\t\treturn c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n\t}\n\n\tvec3 SmoothColoring(vec2 c, float radius) {\t\n\t\tconst float Saturation = 1.0;\n\t\tconst float Value = 0.5;\n\t\tconst float MinHue = 0.1;\n\t\tconst float MaxHue = 0.8;\n\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tfloat value = 0.0;\n\t\tif (iterations < MAX_ITERATIONS) {\n\t\t\tfloat log_zn = log(z.x * z.x + z.y * z.y) / 2.0;\n\t\t\tfloat nu = log(log_zn / log(2.0)) / log(2.0);\n\t\t\t// Rearranging the potential function.\n\t\t\t// Dividing log_zn by log(2) instead of log(N = 1<<8)\n\t\t\t// because we want the entire palette to range from the\n\t\t\t// center to radius 2, NOT our bailout radius.\n\t\t\titerations = iterations + 1 - int(nu);\n\t\t\tvalue = Value;\n\t\t}\n\t\t\n\t\tfloat hue1 = float(iterations) / float(MAX_ITERATIONS);\n\t\tfloat hue2 = float(iterations + 10) / float(MAX_ITERATIONS);\n\t\tfloat hue = lerp(hue1, hue2, 1.0);\n\t\thue = MinHue + hue1 * (MaxHue - MinHue);\n\n\t\tvec3 color = hsv2rgb(vec3(hue, Saturation, value)); \n\t\treturn color;\n\t}\n\n\tvec3 WaveColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.2;\n\t\tcolor.z = 0.5 * sin(Amount * float(iterations) + 4.188) + 0.2;\n\t\tcolor.x = 0.5 * sin(Amount * float(iterations)) + 0.2;\n\t\tcolor.y = 0.5 * sin(Amount * float(iterations) + 2.094) + 0.3;\n\t\t\n\t\treturn color;\n\t}\n\n\tvec3 WaveColoringAnimated(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tconst float speed = 0.69;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\n\t\tvec3 color;\n\t\tconst float Amount = 0.15;\n\t\t\n\t\tcolor.z = 0.5 * cos(time * speed + Amount * float(iterations) + 4.188) + 0.2;\n\t\tcolor.x = 0.5 * cos(time * speed + Amount * float(iterations)) + 0.2;\n\t\tcolor.y = 0.5 * sin(time * speed + Amount * float(iterations) + 2.094) + 0.3;\n\t\t\n\t\treturn color;\n\t}\n\n\tvec3 SimpleColoring(vec2 c, float radius) {\n\t\tvec2 z = vec2(0, 0);\n\t\tint iterations = 0;\n\t\tfor(int i = 0; i < MAX_ITERATIONS; i++) {\n\t\t\tz = cproduct(z, z) + c;\n\t\t\titerations += 1;\n\n\t\t\tif(length(z) >= radius) {\n\t\t\t\tbreak;\n\t\t\t} \n\t\t}\n\t\tfloat luminance = ((float(iterations) - log2(length(z) / float(Radius))) / float(MAX_ITERATIONS));\n\t\tvec3 color = ColorWeight * luminance;\n\t\t\n\t\treturn color / 1.25;\n\t}\n\n\tvoid main() {\n\t\tvec2 st = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);\n\t\tfloat aspect_ratio = width / height;\n\t\tvec2 z = rectMin + st * (rectMax - rectMin) * vec2(aspect_ratio, 1);\n\t\t// int iterations = Diverge(z, Radius);\n\t\tvec3 color;\n\t\tif (coloring_method == 0) {\n\t\t\tcolor = SimpleColoring(z, Radius) * vec3(0.2);\n\t\t} else if (coloring_method == 1) {\n\t\t\tcolor = SmoothColoring(z, Radius);\n\t\t} else if (coloring_method == 2) {\n\t\t\tcolor = WaveColoringAnimated(z, Radius);\n\t\t} else {\n\n\t\t}\n\t\tgl_FragColor = vec4(color * vec3(0.4), 1);\n  \t}\n";
 var vertexSource = "\n\tattribute vec2 vertex;\n\n\tvoid main(){\n\t\tgl_Position = vec4(vertex, 0.0, 1.0);\n\t}\n";
 // width and height of mandelbrot
 var mandelbrot_element = document.querySelector("#mandlebrot");
 mandelbrot_element.width = window.innerWidth;
 mandelbrot_element.height = window.innerHeight;
+// web gl variables
 var gl = mandelbrot_element.getContext("webgl");
+var program_info;
+var position_buffer;
+var shader_program;
 //scroll zoom
 var body_offset = 0;
 // coloring index
@@ -95,66 +99,62 @@ function init_buffer(gl) {
     };
 }
 var delay = function (ms) { return new Promise(function (resolve) { return setTimeout(resolve, ms); }); };
-function render(gl, program_info, buffers) {
+function update() {
+    gl.uniform2f(program_info.uniform_locations.rect_min, rect_min[0], rect_min[1]);
+    gl.uniform2f(program_info.uniform_locations.rect_max, rect_max[0], rect_max[1]);
+    gl.uniform1f(program_info.uniform_locations.width, mandelbrot_element.width);
+    gl.uniform1f(program_info.uniform_locations.height, mandelbrot_element.height);
+    gl.uniform1f(program_info.uniform_locations.time, (new Date().getTime() / 1000) % 100);
+    gl.uniform1i(program_info.uniform_locations.coloring_method, color_index);
+}
+function render() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
             gl.clearDepth(1.0); // Clear everything
-            // Clear the canvas before we start drawing on it.
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-            gl.vertexAttribPointer(program_info.attrib_location.vertex_position, 2, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(program_info.attrib_location.vertex_position);
-            gl.useProgram(program_info.program);
-            gl.uniform2f(program_info.uniform_locations.rect_min, rect_min[0], rect_min[1]);
-            gl.uniform2f(program_info.uniform_locations.rect_max, rect_max[0], rect_max[1]);
-            gl.uniform1f(program_info.uniform_locations.width, mandelbrot_element.width);
-            gl.uniform1f(program_info.uniform_locations.height, mandelbrot_element.height);
-            gl.uniform1f(program_info.uniform_locations.time, (new Date().getTime() / 1000) % 100);
-            gl.uniform1i(program_info.uniform_locations.coloring_method, color_index);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             return [2 /*return*/];
         });
     });
 }
-function main() {
-    return __awaiter(this, void 0, void 0, function () {
-        var gl, shader_program, program_info, position_buffer;
-        return __generator(this, function (_a) {
-            gl = mandelbrot_element.getContext("webgl");
-            if (gl == null) {
-                console.log("No open gl context found");
-                alert("No open gl context found");
-                return [2 /*return*/];
-            }
-            shader_program = intialize_shader_program(gl);
-            program_info = {
-                program: shader_program,
-                attrib_location: {
-                    vertex_position: gl.getAttribLocation(shader_program, "vertex")
-                },
-                uniform_locations: {
-                    rect_min: gl.getUniformLocation(shader_program, "rectMin"),
-                    rect_max: gl.getUniformLocation(shader_program, "rectMax"),
-                    width: gl.getUniformLocation(shader_program, "width"),
-                    height: gl.getUniformLocation(shader_program, "height"),
-                    time: gl.getUniformLocation(shader_program, "time"),
-                    coloring_method: gl.getUniformLocation(shader_program, "coloring_method")
-                }
-            };
-            position_buffer = init_buffer(gl);
-            render(gl, program_info, position_buffer);
-            return [2 /*return*/];
-        });
-    });
+function initialize_webgl() {
+    gl = mandelbrot_element.getContext("webgl");
+    if (gl == null) {
+        console.log("No open gl context found");
+        alert("No open gl context found");
+        return;
+    }
+    shader_program = intialize_shader_program(gl);
+    program_info = {
+        program: shader_program,
+        attrib_location: {
+            vertex_position: gl.getAttribLocation(shader_program, "vertex")
+        },
+        uniform_locations: {
+            rect_min: gl.getUniformLocation(shader_program, "rectMin"),
+            rect_max: gl.getUniformLocation(shader_program, "rectMax"),
+            width: gl.getUniformLocation(shader_program, "width"),
+            height: gl.getUniformLocation(shader_program, "height"),
+            time: gl.getUniformLocation(shader_program, "time"),
+            coloring_method: gl.getUniformLocation(shader_program, "coloring_method")
+        }
+    };
+    position_buffer = init_buffer(gl);
+    gl.bindBuffer(gl.ARRAY_BUFFER, position_buffer.position);
+    gl.vertexAttribPointer(program_info.attrib_location.vertex_position, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(program_info.attrib_location.vertex_position);
+    gl.useProgram(program_info.program);
+    render();
+}
+function loop() {
+    update();
+    render();
+    window.requestAnimationFrame(loop);
 }
 function MapRange(from_x1, from_x2, to_x1, to_x2, x) {
     return (to_x2 - to_x1) / (from_x2 - from_x1) * (x - from_x1) + to_x1;
 }
-// document.addEventListener("mousemove", event => {
-// 	mouse_x = event.clientX
-// 	mouse_y = event.clientY
-// })
 document.addEventListener('dblclick', function (event) {
     var canvasWidth = mandelbrot_element.width;
     var canvasHeight = mandelbrot_element.height;
@@ -173,7 +173,6 @@ document.addEventListener('dblclick', function (event) {
     rect_max[0] += cx;
     rect_min[1] += cy;
     rect_max[1] += cy;
-    main();
 });
 document.addEventListener('scroll', function (event) {
     var canvasWidth = mandelbrot_element.width;
@@ -195,7 +194,6 @@ document.addEventListener('scroll', function (event) {
     rect_max[0] += cx;
     rect_min[1] += cy;
     rect_max[1] += cy;
-    main();
 });
 document.addEventListener('keypress', function (event) {
     var factor = (rect_max[0] - rect_min[0] + rect_max[1] - rect_min[1]) / 4;
@@ -234,42 +232,17 @@ document.addEventListener('keypress', function (event) {
         rect_min[1] += cy;
         rect_max[1] += cy;
     }
-    main();
 });
 function window_resize_handler() {
-    mandelbrot_element = document.querySelector("#mandlebrot");
     mandelbrot_element.width = window.innerWidth;
     mandelbrot_element.height = window.innerHeight;
-    console.log(mandelbrot_element.width, window.innerHeight);
     gl.viewport(0, 0, mandelbrot_element.width, mandelbrot_element.height);
-    main();
 }
 window.onresize = window_resize_handler;
-var start, tick = 0;
-var f = function () {
-    main();
-    if (!start)
-        start = new Date().getTime();
-    var now = new Date().getTime();
-    if (now < start + tick * 1000) {
-        setTimeout(f, 0);
-    }
-    else {
-        tick++;
-        var diff = now - start;
-        var drift = diff % 1000;
-        setTimeout(f, 500);
-    }
-};
-if (navigator.userAgent.indexOf("Firefox") != -1) {
-    requestAnimationFrame(main);
-}
-else {
-    main();
-    setTimeout(f, 500);
-}
 // button click
 function color_button_on_click() {
     color_index = (color_index + 1) % total_colors;
-    main();
+    initialize_webgl();
 }
+initialize_webgl();
+window.requestAnimationFrame(loop);

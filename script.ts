@@ -18,7 +18,7 @@ const fragmentSource = `
 		return pow(v.x * v.x + v.y * v.y, 0.5);
 	}
 	
-	#define MAX_ITERATIONS 500
+	#define MAX_ITERATIONS 1000
 	#define cproduct(a, b) vec2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
 
 	float Radius = 3.0;
@@ -118,7 +118,7 @@ const fragmentSource = `
 	vec3 WaveColoringAnimated(vec2 c, float radius) {
 		vec2 z = vec2(0, 0);
 		int iterations = 0;
-		const float speed = 0.25;
+		const float speed = 0.69;
 		for(int i = 0; i < MAX_ITERATIONS; i++) {
 			z = cproduct(z, z) + c;
 			iterations += 1;
@@ -186,10 +186,18 @@ const vertexSource = `
 let mandelbrot_element:HTMLCanvasElement = document.querySelector("#mandlebrot");
 mandelbrot_element.width = window.innerWidth
 mandelbrot_element.height = window.innerHeight
+
+// web gl variables
 let gl: WebGLRenderingContext = mandelbrot_element.getContext("webgl")
+let program_info
+let position_buffer
+let shader_program
+
+
 
 //scroll zoom
 let body_offset = 0;
+
 
 // coloring index
 const total_colors = 3;
@@ -205,7 +213,6 @@ let rect_min = [ -0.3965481949935583, -0.5992903335141678 ];
 if (window.innerHeight * window.innerHeight < 370944) {
 	rect_max = [-0.37905086326593324, -0.5961265063044972]
 	rect_min =  [-0.38769341259186013, -0.5992903335141678]
-
 }
 
 
@@ -267,27 +274,7 @@ function init_buffer(gl:WebGLRenderingContext) {
 
 let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function render(gl:WebGLRenderingContext, program_info, buffers) {
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-	gl.clearDepth(1.0);                 // Clear everything
-
-	// Clear the canvas before we start drawing on it.
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position)
-	gl.vertexAttribPointer(
-		program_info.attrib_location.vertex_position,
-		2,
-		gl.FLOAT,
-		false,
-		0,
-		0
-	)
-
-	gl.enableVertexAttribArray(program_info.attrib_location.vertex_position);
-	gl.useProgram(program_info.program)
-
+function update() {
 	gl.uniform2f(
 		program_info.uniform_locations.rect_min, rect_min[0], rect_min[1]
 	)
@@ -306,19 +293,26 @@ async function render(gl:WebGLRenderingContext, program_info, buffers) {
 	gl.uniform1i(
 		program_info.uniform_locations.coloring_method, color_index
 	)
+}
+
+
+async function render() {
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+	gl.clearDepth(1.0);                 // Clear everything
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 } 
 
-async function main() {
-	const gl = mandelbrot_element.getContext("webgl")
+function initialize_webgl() {
+	gl = mandelbrot_element.getContext("webgl")
 	if(gl == null) {
 		console.log("No open gl context found")
 		alert("No open gl context found")
 		return ;
 	}
 
-	const shader_program = intialize_shader_program(gl)
-	const program_info = {
+	shader_program = intialize_shader_program(gl)
+	program_info = {
 		program: shader_program,
 		attrib_location: {
 			vertex_position: gl.getAttribLocation(shader_program, "vertex") 
@@ -332,18 +326,33 @@ async function main() {
 			coloring_method: gl.getUniformLocation(shader_program, "coloring_method")
 		}
 	}
-	let position_buffer = init_buffer(gl)
-	render(gl, program_info, position_buffer)
+	position_buffer = init_buffer(gl)
+	
+	gl.bindBuffer(gl.ARRAY_BUFFER, position_buffer.position)
+	gl.vertexAttribPointer(
+		program_info.attrib_location.vertex_position,
+		2,
+		gl.FLOAT,
+		false,
+		0,
+		0
+	)
+
+	gl.enableVertexAttribArray(program_info.attrib_location.vertex_position);
+	gl.useProgram(program_info.program)
+	render()
+}
+
+function loop() {
+	update()
+	render()
+
+	window.requestAnimationFrame(loop)
 }
 
 function MapRange(from_x1: number, from_x2: number, to_x1: number, to_x2: number, x: number): number {
     return (to_x2 - to_x1) / (from_x2 - from_x1) * (x - from_x1) + to_x1;
 }
-
-// document.addEventListener("mousemove", event => {
-// 	mouse_x = event.clientX
-// 	mouse_y = event.clientY
-// })
 
 document.addEventListener('dblclick', event => {
 	let canvasWidth = mandelbrot_element.width
@@ -367,8 +376,6 @@ document.addEventListener('dblclick', event => {
 	rect_max[0] += cx;
 	rect_min[1] += cy;
 	rect_max[1] += cy;
-
-	main()
 })
 
 document.addEventListener('scroll', event => {
@@ -395,8 +402,6 @@ document.addEventListener('scroll', event => {
 	rect_max[0] += cx;
 	rect_min[1] += cy;
 	rect_max[1] += cy;
-
-	main()
 })
 
 document.addEventListener('keypress', event => {
@@ -436,45 +441,20 @@ document.addEventListener('keypress', event => {
 		rect_min[1] += cy;
 		rect_max[1] += cy;
 	}
-	main()
 })
 
 function window_resize_handler() {
-	mandelbrot_element = document.querySelector("#mandlebrot");
 	mandelbrot_element.width = window.innerWidth
 	mandelbrot_element.height = window.innerHeight
-	console.log(mandelbrot_element.width, window.innerHeight)
 	gl.viewport(0, 0, mandelbrot_element.width, mandelbrot_element.height)
-	main()
 }
 window.onresize = window_resize_handler
-
-
-var start, tick = 0;
-var f = function() {
-	main()
-    if (!start) start = new Date().getTime();
-    var now = new Date().getTime();
-    if (now < start + tick*1000) {
-        setTimeout(f, 0);
-    } else {
-        tick++;
-        var diff = now - start;
-        var drift = diff % 1000;
-        setTimeout(f, 500 );
-    }
-};
-
-if(navigator.userAgent.indexOf("Firefox") != -1 ) {
-	requestAnimationFrame(main)
-} else {
-	main()
-	setTimeout(f, 500)
-}
-
 
 // button click
 function color_button_on_click() {
 	color_index = (color_index + 1) % total_colors
-	main()
+	initialize_webgl()
 }
+
+initialize_webgl()
+window.requestAnimationFrame(loop)
