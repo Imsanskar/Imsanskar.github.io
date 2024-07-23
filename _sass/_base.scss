@@ -210,6 +210,11 @@ ul.task-list input[type="checkbox"] {
     width: 30%;
 
     .address {
+      margin-bottom: 5px;
+      margin-top: 5px;
+      text-align: center;
+      font-family: monospace;
+
       p {
         display: block;
       }
@@ -373,7 +378,7 @@ ul.task-list input[type="checkbox"] {
   text-align: center;
 
   .contact-icons {
-    font-size: 4rem;
+    font-size: 1rem;
 
     a {
       i::before {
