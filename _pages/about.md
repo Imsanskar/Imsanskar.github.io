@@ -2,7 +2,7 @@
 layout: about
 title: About
 permalink: /
-subtitle: <a href='https://www.naamii.org.np/'>Research Assitant, NAAMI</a>
+subtitle: <a href='https://www.naamii.org.np/'>Research Assistant, NAAMII</a>
 
 profile:
   align: right
