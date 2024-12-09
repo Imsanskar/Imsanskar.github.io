@@ -18,6 +18,6 @@ social: true # includes social icons at the bottom of the page
 ---
 
 
-Hello there, I’m an computer engineering graduate from Pulchowk Campus, Institure of Engineering, Nepal. I currenty work at NAAMII under the supervision of [Dr. Binod Bhattarai](https://scholar.google.com/citations?user=PDEi58sAAAAJ). My research interested in developing robust models in the presence of limited and/or noisy data, revolvong around federated learning, multi-modal learning and learning with noisy lalbels.  Lately, I have been exploring client selection for semi-asynchronous federated learning. 
+Hello there, I’m an computer engineering graduate from Pulchowk Campus, Institute of Engineering, Nepal. I currenty work at NAAMII under the supervision of [Dr. Binod Bhattarai](https://scholar.google.com/citations?user=PDEi58sAAAAJ). My research interests lie at the intersection of data privacy, robustness, and machine learning, with a particular focus on federated learning, self-supervised pre-training for limited data and the security of machine learning models against adversarial attacks. Lately, I have been exploring client selection to improve convergence of semi-asynchronous federated learning.
 
-Research Interests: Federated Learing, Distributed Optimization, Self-supervised Learning, Multimodal Learning, Learning with Noisy Labels
+Research Interests: Federated Learing, Robust Machine Learning, Self-supervised Learning, Distributed Optimization
