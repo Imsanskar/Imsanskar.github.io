@@ -1,0 +1,32 @@
+{
+  "posts": [
+    {
+      "id": "cuda-programming",
+      "title": "Introduction to CUDA Programming",
+      "date": "2024-07-06",
+      "readTime": "6 min read",
+      "tags": ["2024"],
+      "external": true,
+      "url": "https://medium.com/@sanskaramgain/introduction-to-cuda-programming-0a6bdaa08c78",
+      "source": "medium.com"
+    },
+    {
+      "id": "intro-gan",
+      "title": "Introduction to Generative Adversarial Network",
+      "date": "2023-07-14",
+      "readTime": "7 min read",
+      "tags": ["2023", "GAN", "Generative", "Networks"],
+      "file": "./blogs/gan.md"
+    },
+    {
+      "id": "templates-compile-time",
+      "title": "Templates and Compile Time Execution",
+      "date": "2023-01-08",
+      "readTime": "6 min read",
+      "tags": ["2023"],
+      "external": true,
+      "url": "https://medium.com/zerone-magazine/templates-and-compile-time-execution-c22234a6cd66",
+      "source": "medium.com"
+    }
+  ]
+}

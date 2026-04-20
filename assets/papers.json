@@ -1,0 +1,136 @@
+{
+  "publications": [
+    {
+      "id": "amgain-usenix-2026",
+      "year": 2026,
+      "tag": "USENIX",
+      "title": "HAMLOCK: HArdware-Model LOgically Combined attacK",
+      "authors": [
+        { "name": "Sanskar Amgain", "equal": true },
+        { "name": "Devan Lobo", "equal": true },
+        { "name": "Ahrin Chatterjee", "equal": true }
+      ],
+      "moreAuthors": 2,
+      "venue": "In",
+      "status": "Accepted at USENIX Security 2026",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "koju-demi-2025",
+      "year": 2025,
+      "tag": "DEMI",
+      "title": "Surgical Vision World Model",
+      "authors": [
+        { "name": "S. Koju" },
+        { "name": "S. Bastola" },
+        { "name": "Prashant Shrestha" }
+      ],
+      "moreAuthors": 4,
+      "venue": "In",
+      "status": "MICCAI Workshop on Data Engineering in Medical Imaging (DEMI), 2025",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "mclean-biorxiv-2025",
+      "year": 2025,
+      "tag": "bioRxiv",
+      "tagOutline": true,
+      "title": "Multilevel-consistency of social behaviour in a cockroach",
+      "authors": [
+        { "name": "C. J. McLean" },
+        { "name": "Sanskar Amgain" },
+        { "name": "Binod Bhattarai" },
+        { "name": "D. N. Fisher" }
+      ],
+      "moreAuthors": 0,
+      "venue": "bioRxiv 2025-08",
+      "status": "",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "amgain-ksim-2024",
+      "year": 2024,
+      "tag": "Preprint",
+      "tagOutline": true,
+      "title": "Local K-Similarity Constraint for Federated Learning with Label Noise",
+      "authors": [
+        { "name": "Sanskar Amgain", "equal": true },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Y. R. Shrestha" }
+      ],
+      "moreAuthors": 3,
+      "venue": "Preprint",
+      "status": "",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "poudel-miccai-2024",
+      "year": 2024,
+      "tag": "MICCAI",
+      "title": "CAR-MFL: Cross-Modal Augmentation by Retrieval for Multimodal Federated Learning with Missing Modalities",
+      "authors": [
+        { "name": "Pranav Poudel" },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sanskar Amgain", "equal": true }
+      ],
+      "moreAuthors": 3,
+      "venue": "In",
+      "status": "Accepted at MICCAI 2024",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "khanal-embc-2024",
+      "year": 2024,
+      "tag": "EMBC",
+      "title": "Investigating the Robustness of Vision Transformers against Label Noise in Medical Image Classification",
+      "authors": [
+        { "name": "Bidur Khanal" },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sanskar Amgain", "equal": true }
+      ],
+      "moreAuthors": 3,
+      "venue": "In",
+      "status": "Accepted at EMBC 2024",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "amgain-ipcai-2024",
+      "year": 2024,
+      "tag": "IPCAI",
+      "title": "Investigation of Federated Learning Algorithms for Retinal Optical Coherence Tomography Image Classification with Statistical Heterogeneity",
+      "authors": [
+        { "name": "Sanskar Amgain", "equal": true },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sophia Bano" }
+      ],
+      "moreAuthors": 5,
+      "venue": "In",
+      "status": "Accepted at IPCAI 2024",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "shrestha-arxiv-2023",
+      "year": 2023,
+      "tag": "arXiv",
+      "tagOutline": true,
+      "title": "Medical Vision Language Pretraining: A survey",
+      "authors": [
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sanskar Amgain", "equal": true },
+        { "name": "Bidur Khanal" }
+      ],
+      "moreAuthors": 2,
+      "venue": "arXiv preprint arXiv:2312.06224",
+      "status": "",
+      "url": "https://arxiv.org/abs/2312.06224",
+      "bibtex": ""
+    }
+  ]
+}

@@ -1,66 +1,962 @@
 <!DOCTYPE html>
-	<link 
-		href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" 
-		rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" 
-		crossorigin="anonymous"
-	>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.10/css/font-awesome.min.css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<link rel="stylesheet" href="css/style.css">
-	<head>
-		<title>Hello there</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sanskar Amgain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-		
-		<style>
+<!-- Blog: markdown rendering, math, code highlighting (all CDN, load on demand) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
 
-		</style>
-	</head>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --bg-elev: #111418;
+    --fg: #e8ecef;
+    --fg-muted: #8a9199;
+    --fg-dim: #5a6169;
+    --accent: #5fb4cf;
+    --accent-hover: #7cc9e0;
+    --tag-bg: #4aa3be;
+    --tag-fg: #0b0d10;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --year-watermark: rgba(255, 255, 255, 0.4);
+    --panel-bg: rgba(11, 13, 16, 0.62);
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; background: var(--bg); }
+  body {
+    background: transparent;
+    color: var(--fg);
+    font-family: 'Figtree', -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-	<body id = "home">
-		<div class="navbar top" id="navbar">
-            <nav>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#programming">Programming</a></li>
-                    <li><a href="#contact">Contact</a></li>
-					<li><button id = "navbar_btn"><i class="material-icons">palette</i></button></li>
-                </ul>
-            </nav>
+  #mandelbrot-bg { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; display: block; pointer-events: none; }
+  .vignette { position: fixed; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at center, transparent 40%, rgba(11,13,16,0.25) 100%); }
+
+  a { color: var(--accent); text-decoration: none; transition: color 0.15s ease; }
+  a:hover { color: var(--accent-hover); }
+
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11, 13, 16, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 16px 40px; display: flex; align-items: center; gap: 24px; }
+  .nav-brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+  .nav-brand.visible { opacity: 1; pointer-events: auto; }
+  .nav-brand .last { font-weight: 400; color: var(--fg-muted); margin-left: 4px; }
+  .nav-links { display: flex; align-items: center; gap: 26px; margin-left: auto; }
+  .nav-link { color: var(--fg-muted); font-size: 15px; font-weight: 500; cursor: pointer; background: none; border: none; font-family: inherit; padding: 4px 2px; transition: color 0.15s ease; }
+  .nav-link:hover { color: var(--fg); }
+  .nav-link.active { color: var(--accent); }
+  .nav-tools { display: flex; align-items: center; gap: 14px; margin-left: 10px; padding-left: 18px; border-left: 1px solid var(--border); }
+  .shortcut { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-dim); padding: 3px 7px; border: 1px solid var(--border-strong); border-radius: 4px; letter-spacing: 0.04em; }
+  .icon-btn { background: none; border: none; color: var(--fg-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.15s ease; }
+  .icon-btn:hover { color: var(--fg); }
+  .icon-btn svg { width: 17px; height: 17px; }
+  .icon-btn.palette-btn:hover { color: var(--accent); }
+
+  main { max-width: 900px; margin: 40px auto; padding: 40px; position: relative; z-index: 10; background: transparent; isolation: isolate; }
+  main::before {
+    content: '';
+    position: absolute; inset: -60px; z-index: -1;
+    background: radial-gradient(
+      ellipse 70% 85% at center,
+      rgba(8, 10, 14, 0.72) 0%,
+      rgba(8, 10, 14, 0.55) 40%,
+      rgba(8, 10, 14, 0.20) 75%,
+      transparent 100%
+    );
+    pointer-events: none;
+    transition: background 0.3s ease;
+  }
+  /* Darker backdrop for long-form reading (blog post view) */
+  main.reading::before {
+    background: radial-gradient(
+      ellipse 75% 95% at center,
+      rgba(8, 10, 14, 0.88) 0%,
+      rgba(8, 10, 14, 0.78) 55%,
+      rgba(8, 10, 14, 0.35) 88%,
+      transparent 100%
+    );
+  }
+
+  main, main p, main h1, main h2, main h3, main a, main span,
+  main .bio, main .pub-authors, main .pub-venue, main .pub-accepted,
+  main .post-meta, main .post-tags, main .pub-intro, main .eq-note,
+  main .cv-line, main .pub-title, main .post-title {
+    text-shadow:
+      0 0 1px rgba(0,0,0,1),
+      0 1px 3px rgba(0,0,0,0.95),
+      0 0 18px rgba(0,0,0,0.75);
+  }
+  main h1.name, main h1.pub-page-title, main .page-title-centered,
+  main h2.section-title {
+    text-shadow:
+      0 0 2px rgba(0,0,0,1),
+      0 2px 6px rgba(0,0,0,1),
+      0 0 24px rgba(0,0,0,0.8);
+  }
+  @media (max-width: 720px) {
+    main { margin: 16px; padding: 28px 24px; }
+  }
+
+  .page { display: none; animation: fadeIn 0.35s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .about-header { display: grid; grid-template-columns: 1fr 240px; gap: 40px; align-items: start; }
+  @media (max-width: 720px) { .about-header { grid-template-columns: 1fr; } }
+
+  h1.name { font-size: 46px; font-weight: 400; letter-spacing: -0.025em; line-height: 1.1; margin-bottom: 14px; }
+  h1.name .first { font-weight: 800; }
+  .role-link { display: inline-block; font-size: 16px; margin-bottom: 26px; border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+  .bio p { margin-bottom: 18px; color: #d4d8dc; }
+  .bio p:last-child { margin-bottom: 0; }
+
+  .photo-card {
+    width: 100%; aspect-ratio: 1 / 1;
+    background: linear-gradient(135deg, rgba(26,34,40,0.85) 0%, rgba(15,20,24,0.9) 100%);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-strong); border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .photo-card::after { content: "SA"; font-size: 68px; font-weight: 300; color: var(--fg-dim); letter-spacing: -0.03em; }
+  .photo-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .photo-meta { margin-top: 18px; text-align: center; }
+  .socials { display: flex; justify-content: center; gap: 16px; margin-bottom: 14px; }
+  .socials a { color: var(--fg-muted); display: flex; align-items: center; }
+  .socials a:hover { color: var(--fg); }
+  .socials svg { width: 18px; height: 18px; }
+  .cv-line { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-muted); letter-spacing: 0.02em; }
+
+  hr.divider { border: none; height: 1px; background: var(--border); margin: 64px 0 44px; }
+  h2.section-title { font-size: 30px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 36px; }
+
+  .pub-list { display: flex; flex-direction: column; gap: 36px; }
+  .pub { display: grid; grid-template-columns: 90px 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 560px) { .pub { grid-template-columns: 1fr; gap: 10px; } }
+  .tag { display: inline-flex; align-items: center; justify-content: center; background: var(--tag-bg); color: var(--tag-fg); padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; border-radius: 2px; width: fit-content; min-width: 72px; text-align: center; }
+  .pub-title { font-size: 16px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; color: var(--fg); }
+  .pub-authors { font-size: 15px; color: #c1c6ca; margin-bottom: 2px; }
+  .more-authors { color: var(--fg-dim); border-bottom: 1px dotted var(--fg-dim); cursor: help; }
+  .pub-venue { font-size: 14px; color: var(--fg-muted); margin-bottom: 2px; }
+  .pub-venue em { font-style: italic; }
+  .pub-accepted { font-size: 14px; color: var(--fg-muted); margin-bottom: 12px; }
+  .bib-btn { display: inline-block; border: 1px solid var(--border-strong); padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; color: var(--fg); background: transparent; cursor: pointer; border-radius: 2px; transition: all 0.15s ease; }
+  .bib-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ========== BLOG LIST ========== */
+  .page-title-centered { text-align: center; font-size: 38px; font-weight: 400; letter-spacing: -0.02em; margin-bottom: 56px; }
+  .post-list { display: flex; flex-direction: column; }
+  .post { padding: 32px 0; border-top: 1px solid var(--border); }
+  .post:last-child { border-bottom: 1px solid var(--border); }
+  .post-title { font-size: 21px; font-weight: 600; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 8px; letter-spacing: -0.01em; }
+  .post-title a { color: var(--fg); cursor: pointer; }
+  .post-title a:hover { color: var(--accent); }
+  .ext-icon { width: 14px; height: 14px; color: var(--fg-dim); }
+  .post-meta { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--fg-dim); margin-bottom: 14px; }
+  .post-meta .sep { color: var(--fg-dim); }
+  .post-tags { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--fg-muted); }
+  .post-tag { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ========== BLOG POST (DETAIL VIEW) ========== */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--fg-muted); font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em; cursor: pointer;
+    background: none; border: none; padding: 0;
+    margin-bottom: 28px; transition: color 0.15s ease;
+  }
+  .back-link:hover { color: var(--accent); }
+  .back-link svg { width: 14px; height: 14px; }
+
+  .post-article-title { font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 16px; color: var(--fg); }
+  .post-article-meta {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 13px; color: var(--fg-muted);
+    margin-bottom: 36px; padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .post-article-meta .meta-tag { color: var(--fg-dim); }
+
+  /* Prose typography for rendered markdown */
+  .post-article-content { font-size: 16px; line-height: 1.78; color: #d4d8dc; }
+  .post-article-content > * { margin-bottom: 20px; }
+  .post-article-content h1,
+  .post-article-content h2,
+  .post-article-content h3,
+  .post-article-content h4,
+  .post-article-content h5 {
+    color: var(--fg); font-weight: 600;
+    letter-spacing: -0.015em; line-height: 1.3;
+    margin-top: 40px; margin-bottom: 16px;
+  }
+  .post-article-content h1 { font-size: 28px; }
+  .post-article-content h2 { font-size: 24px; }
+  .post-article-content h3 { font-size: 20px; }
+  .post-article-content h4 { font-size: 17px; letter-spacing: 0; text-transform: none; }
+  .post-article-content h5 { font-size: 15px; color: var(--fg-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  .post-article-content p { margin-bottom: 20px; }
+  .post-article-content a { color: var(--accent); border-bottom: 1px solid rgba(95,180,207,0.3); }
+  .post-article-content a:hover { border-bottom-color: var(--accent); }
+  .post-article-content ul,
+  .post-article-content ol { margin: 10px 0 20px 22px; }
+  .post-article-content li { margin-bottom: 6px; }
+  .post-article-content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 4px 18px; margin: 20px 0;
+    color: var(--fg-muted); font-style: italic;
+  }
+  .post-article-content img {
+    max-width: 100%; height: auto;
+    border-radius: 3px; margin: 20px auto; display: block;
+    border: 1px solid var(--border);
+  }
+  .post-article-content p code,
+  .post-article-content li code {
+    background: rgba(255,255,255,0.08);
+    padding: 2px 6px; border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #e8d49c;
+  }
+  .post-article-content pre {
+    background: rgba(15, 18, 22, 0.85);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-strong);
+    padding: 18px 20px; border-radius: 4px;
+    overflow-x: auto; margin: 24px 0;
+    font-size: 13px; line-height: 1.6;
+  }
+  .post-article-content pre code {
+    background: transparent; padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+    color: #e8ecef;
+  }
+  /* Disable inherited text-shadow on code and math — shadow makes them fuzzy */
+  .post-article-content pre,
+  .post-article-content pre *,
+  .post-article-content code,
+  .post-article-content .katex,
+  .post-article-content .katex * { text-shadow: none !important; }
+  .post-article-content .katex-display { margin: 24px 0; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  .post-article-content em { font-style: italic; color: #c1c6ca; }
+  .post-article-content strong { color: var(--fg); font-weight: 600; }
+
+  /* ========== PUBLICATIONS ========== */
+  .pub-page-header { margin-bottom: 40px; }
+  h1.pub-page-title { font-size: 42px; font-weight: 400; letter-spacing: -0.025em; margin-bottom: 16px; }
+  .pub-intro { color: #c1c6ca; margin-bottom: 6px; }
+  .eq-note { font-style: italic; color: var(--fg-muted); font-size: 14px; margin-bottom: 20px; }
+  .filter-input { width: 100%; max-width: 340px; background: rgba(17, 20, 24, 0.7); border: 1px solid var(--border-strong); color: var(--fg); padding: 10px 14px; font-family: inherit; font-size: 14px; border-radius: 3px; transition: border-color 0.15s ease; }
+  .filter-input:focus { outline: none; border-color: var(--accent); }
+  .filter-input::placeholder { color: var(--fg-dim); }
+
+  .year-group { position: relative; padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--border); }
+  .year-group:first-of-type { border-top: none; margin-top: 0; padding-top: 12px; }
+  .year-watermark {
+    position: absolute; top: 10px; right: 0;
+    font-size: 68px; font-weight: 300;
+    color: var(--year-watermark);
+    letter-spacing: -0.02em; pointer-events: none; line-height: 1;
+    text-shadow: 0 0 1px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.85), 0 0 24px rgba(0,0,0,0.6);
+  }
+  .year-group .pub-list { padding-top: 20px; }
+  .pub.hidden { display: none; }
+  .year-group.empty { display: none; }
+
+  .pubs-loading { color: var(--fg-dim); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 20px 0; letter-spacing: 0.04em; }
+  .pubs-error { color: var(--fg-muted); font-size: 14px; padding: 24px; border: 1px dashed var(--border-strong); border-radius: 4px; line-height: 1.6; }
+  .pubs-error code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 2px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); }
+  .bib-btn.copied { border-color: var(--accent); color: var(--accent); }
+
+  .zoom-hint { position: fixed; bottom: 24px; right: 24px; z-index: 20; background: rgba(11, 13, 16, 0.8); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-muted); letter-spacing: 0.03em; border-radius: 3px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+  .zoom-hint.visible { opacity: 1; }
+  .zoom-hint kbd { font-family: inherit; color: var(--fg); padding: 1px 5px; border: 1px solid var(--border-strong); border-radius: 2px; margin: 0 2px; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #22272c; }
+  ::-webkit-scrollbar-thumb:hover { background: #2e353b; }
+</style>
+</head>
+<body>
+
+<canvas id="mandelbrot-bg"></canvas>
+<div class="vignette"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand" id="navBrand">Sanskar<span class="last">Amgain</span></div>
+    <div class="nav-links">
+      <button class="nav-link active" data-page="about">About</button>
+      <button class="nav-link" data-page="blog">Blog</button>
+      <button class="nav-link" data-page="publications">Publications</button>
+      <div class="nav-tools">
+        <span class="shortcut">⌘ K</span>
+        <button class="icon-btn" aria-label="Search" title="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button class="icon-btn palette-btn" id="paletteBtn" aria-label="Change palette" title="Change background palette">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <section id="about" class="page active">
+    <div class="about-header">
+      <div>
+        <h1 class="name"><span class="first">Sanskar</span> Amgain</h1>
+        <a href="https://www.utk.edu/" class="role-link">PhD Student, University of Tennessee, Knoxville</a>
+        <div class="bio">
+          <p>
+            Hello there, I'm a PhD student in Computer Science at the
+            <a href="https://www.utk.edu/">University of Tennessee, Knoxville</a>, advised by
+            <a href="https://fsuya.org">Dr. Suya</a>. I completed my Bachelor's in Computer Engineering at
+            Pulchowk Campus, Institute of Engineering, Nepal. Before starting my PhD, I worked as
+            a Research Assistant at the Multimodal Learning Lab under the supervision of
+            <a href="https://sites.google.com/view/bbinod/home">Dr. Binod Bhattarai</a>.
+          </p>
+          <p>
+            My research lies at the intersection of machine learning and security. I work on hardware-model attacks that jointly target both the model and its deployment stack, watermarking techniques for tracking model ownership and provenance, and the adversarial robustness of deployed ML systems.
+          </p>
+          <p>
+            Research Interests: ML Security, Hardware-Model Attacks, Model Watermarking, Adversarial Robustness
+          </p>
         </div>
+      </div>
+      <div>
+        <div class="photo-card">
+          <!-- Replace with <img src="./assets/image.jpg" alt="Sanskar Amgain"> -->
+        </div>
+        <div class="photo-meta">
+          <div class="socials">
+            <a href="mailto:sanskaramgain@gmail.com" aria-label="Email" title="sanskaramgain@gmail.com">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+            </a>
+            <a href="#" aria-label="Google Scholar" title="Google Scholar">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 9l11 7 11-7-11-7Zm0 10.5L4 8l8-5.1L20 8l-8 4.5Zm-6 .8v5.2c0 1.9 3 4 6 4s6-2.1 6-4v-5.2l-6 3.9-6-3.9Z"/></svg>
+            </a>
+            <a href="#" aria-label="GitHub" title="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.35 1.08 2.92.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03A9.5 9.5 0 0 1 12 6.8c.85 0 1.7.11 2.5.34 1.9-1.3 2.74-1.03 2.74-1.03.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.69 0 3.85-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn" title="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.063 2.063 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+          </div>
+          <div class="cv-line">Find my <a href="./assets/CV.pdf">CV here.</a></div>
+        </div>
+      </div>
+    </div>
 
-		<div id="about" class="content">
-			<div class="intro">
-				<div class="dp_image">
-					<img src="/assets/image.jpg" class="dp_im" width="270" height="290" alt="Avatar">
-				</div>
-				<div class = "title_top">
-					<div class = "intro_title"> Sanskar Amgain  </div>
-					<div class = "intro_subtext">Machine Learning, Math, Linux, C++</div>
-				</div>
-			</div>
+    <hr class="divider" />
 
-			<div class = projects>
-				<div class="title">Projects</div>
+    <h2 class="section-title">Selected Publications</h2>
 
+    <div class="pub-list" id="selected-pubs-container">
+      <div class="pubs-loading">Loading publications…</div>
+    </div>
+  </section>
 
-				<div class="project_tag">
-					<button type="button" class="tag_btn">GAN</button>
-					<button type="button" class="tag_btn">Graphics</button>
-					<button type="button" class="tag_btn">Low Level Programming</button>
-				</div>
+  <!-- ========== BLOG LIST ========== -->
+  <section id="blog" class="page">
+    <h1 class="page-title-centered">My Blog</h1>
+    <div class="post-list" id="blog-list-container">
+      <div class="pubs-loading">Loading posts…</div>
+    </div>
+  </section>
 
-				<div class="project_card">
-					Controls: <br>
-					w, a, s d: for panning <br>
-					o: zoom out <br>
-					dbl click: zoom in <br>
-				</div>
-			</div>
-		</div>
+  <!-- ========== BLOG POST (detail view) ========== -->
+  <section id="blog-post" class="page">
+    <button class="back-link" id="blogBack" aria-label="Back to blog">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      BACK TO BLOG
+    </button>
+    <h1 class="post-article-title" id="postArticleTitle"></h1>
+    <div class="post-article-meta" id="postArticleMeta"></div>
+    <div class="post-article-content" id="postArticleContent">
+      <div class="pubs-loading">Loading post…</div>
+    </div>
+  </section>
 
-		<canvas id = "mandlebrot"></canvas>
-		<script src = "script.js"></script>
-	</body>
+  <section id="publications" class="page">
+    <div class="pub-page-header">
+      <h1 class="pub-page-title">Publications</h1>
+      <p class="pub-intro">Find all the latest publications on <a href="#">my google scholar.</a></p>
+      <p class="eq-note">* indicates equal contribution</p>
+      <input type="text" class="filter-input" id="pubFilter" placeholder="Type to filter" />
+    </div>
+    <div id="all-pubs-container">
+      <div class="pubs-loading">Loading publications…</div>
+    </div>
+  </section>
+
+</main>
+
+<div class="zoom-hint" id="zoomHint">
+  <kbd>scroll</kbd> to browse + zoom · <kbd>drag</kbd> to pan · <kbd>r</kbd> to reset
+</div>
+
+<!-- Markdown + math + code highlighting libraries (lazy on blog post view) -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+
+<script>
+/* =========================================================================
+   MANDELBROT BACKGROUND — unchanged from before
+   ========================================================================= */
+(() => {
+  const vertexSrc = `attribute vec2 a_pos; void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+  const fragmentSrc = `
+    precision highp float;
+    uniform vec2 u_resolution; uniform vec2 u_center; uniform float u_zoom;
+    uniform float u_time; uniform int u_palette; uniform int u_maxIter; uniform float u_dim;
+    bool insideMainSet(vec2 c) {
+      float x = c.x, y = c.y;
+      if ((x + 1.0)*(x + 1.0) + y*y < 0.0625) return true;
+      float xm = x - 0.25; float q = xm*xm + y*y;
+      if (q * (q + xm) < 0.25 * y*y) return true;
+      return false;
+    }
+    vec3 cosPalette(float t, vec3 a, vec3 b, vec3 c, vec3 d) { return a + b * cos(6.28318530718 * (c * t + d)); }
+    vec3 pickPalette(float t) {
+      if (u_palette == 0) return cosPalette(t, vec3(0.28,0.18,0.20), vec3(0.35,0.28,0.20), vec3(1.0), vec3(0.00,0.15,0.35));
+      else if (u_palette == 1) return cosPalette(t, vec3(0.18,0.22,0.30), vec3(0.28,0.32,0.38), vec3(1.0), vec3(0.15,0.28,0.48));
+      else if (u_palette == 2) return cosPalette(t, vec3(0.32,0.14,0.12), vec3(0.38,0.22,0.12), vec3(1.0), vec3(0.00,0.08,0.20));
+      else return cosPalette(t, vec3(0.22,0.22,0.24), vec3(0.32,0.32,0.32), vec3(1.0), vec3(0.0,0.0,0.0));
+    }
+    void main() {
+      vec2 st = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
+      float aspect = u_resolution.x / u_resolution.y;
+      vec2 c = u_center + vec2(st.x * aspect, st.y) / u_zoom;
+      if (insideMainSet(c)) { gl_FragColor = vec4(0.015, 0.02, 0.028, 1.0); return; }
+      vec2 z = vec2(0.0); const float BAILOUT2 = 65536.0;
+      int i = 0; float d2 = 0.0;
+      for (int k = 0; k < 2000; k++) {
+        if (k >= u_maxIter) { i = k; break; }
+        z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;
+        d2 = dot(z, z);
+        if (d2 > BAILOUT2) { i = k; break; }
+        i = k;
+      }
+      if (i >= u_maxIter - 1) { gl_FragColor = vec4(0.015, 0.02, 0.028, 1.0); return; }
+      float log_zn = log(d2) * 0.5;
+      float nu = log(log_zn / log(2.0)) / log(2.0);
+      float mu = float(i) + 1.0 - nu;
+      float t = fract(mu * 0.035 + u_time * 0.006);
+      vec3 color = pickPalette(t) * u_dim;
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+  const canvas = document.getElementById('mandelbrot-bg');
+  const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
+  if (!gl) { console.warn('WebGL unavailable.'); return; }
+  function compile(type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.error(gl.getShaderInfoLog(s)); return null; }
+    return s;
+  }
+  const program = gl.createProgram();
+  gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSrc));
+  gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSrc));
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.error(gl.getProgramInfoLog(program)); return; }
+  gl.useProgram(program);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(program, 'a_pos');
+  gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+  const u = {
+    resolution: gl.getUniformLocation(program, 'u_resolution'),
+    center: gl.getUniformLocation(program, 'u_center'),
+    zoom: gl.getUniformLocation(program, 'u_zoom'),
+    time: gl.getUniformLocation(program, 'u_time'),
+    palette: gl.getUniformLocation(program, 'u_palette'),
+    maxIter: gl.getUniformLocation(program, 'u_maxIter'),
+    dim: gl.getUniformLocation(program, 'u_dim'),
+  };
+  const state = {
+    centerX: -0.7461824948806102, centerY: 0.11514065680601943, zoom: 775.3382808867166,
+    palette: 0, dim: 0.75, startTime: performance.now(),
+  };
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.floor(window.innerWidth * dpr), h = Math.floor(window.innerHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h;
+      canvas.style.width = window.innerWidth + 'px'; canvas.style.height = window.innerHeight + 'px';
+      gl.viewport(0, 0, w, h);
+    }
+  }
+  resize(); window.addEventListener('resize', resize);
+  const computeMaxIter = () => Math.min(2000, Math.floor(120 + 60 * Math.log2(Math.max(1, state.zoom))));
+  function render() {
+    const t = (performance.now() - state.startTime) / 1000;
+    gl.uniform2f(u.resolution, canvas.width, canvas.height);
+    gl.uniform2f(u.center, state.centerX, state.centerY);
+    gl.uniform1f(u.zoom, state.zoom); gl.uniform1f(u.time, t);
+    gl.uniform1i(u.palette, state.palette); gl.uniform1i(u.maxIter, computeMaxIter());
+    gl.uniform1f(u.dim, state.dim);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render();
+  function pixelToComplex(px, py) {
+    const aspect = window.innerWidth / window.innerHeight;
+    const nx = (px / window.innerWidth) * 2 - 1, ny = 1 - (py / window.innerHeight) * 2;
+    return { x: state.centerX + (nx * aspect) / state.zoom, y: state.centerY + ny / state.zoom };
+  }
+  // Wheel does BOTH: the browser scrolls the page naturally (we don't
+  // preventDefault), AND the mandelbrot zooms as an ambient side effect.
+  // Scroll down → zoom in; scroll up → zoom out. Rate is dialed way down
+  // because this runs constantly while reading — it should drift, not lurch.
+  const mainEl = document.querySelector('main');
+  window.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const factor = Math.exp(e.deltaY * 0.0004);
+    state.zoom = Math.max(0.3, Math.min(1e6, state.zoom * factor));
+  }, { passive: true });
+
+  window.addEventListener('dblclick', (e) => {
+    if (e.target.closest('main, nav')) return;
+    const cursor = pixelToComplex(e.clientX, e.clientY), factor = 2.0;
+    state.zoom *= factor;
+    state.centerX = cursor.x - (cursor.x - state.centerX) / factor;
+    state.centerY = cursor.y - (cursor.y - state.centerY) / factor;
+  });
+  let dragging = false, dragStart = null;
+  window.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('main, nav, .zoom-hint')) return;
+    dragging = true;
+    dragStart = { x: e.clientX, y: e.clientY, cx: state.centerX, cy: state.centerY };
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const aspect = window.innerWidth / window.innerHeight;
+    const dx = (e.clientX - dragStart.x) / window.innerWidth * 2 * aspect / state.zoom;
+    const dy = (e.clientY - dragStart.y) / window.innerHeight * 2 / state.zoom;
+    state.centerX = dragStart.cx - dx; state.centerY = dragStart.cy + dy;
+  });
+  window.addEventListener('pointerup', () => { dragging = false; });
+  window.addEventListener('pointercancel', () => { dragging = false; });
+  document.getElementById('paletteBtn').addEventListener('click', () => {
+    state.palette = (state.palette + 1) % 4;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea')) return;
+    if (e.key.toLowerCase() === 'p') {
+      console.log(`  centerX: ${state.centerX},\n  centerY: ${state.centerY},\n  zoom:    ${state.zoom},`);
+      navigator.clipboard?.writeText(`centerX: ${state.centerX},\ncenterY: ${state.centerY},\nzoom:    ${state.zoom},`).catch(() => {});
+    }
+    if (e.key.toLowerCase() === 'r') {
+      state.centerX = -0.7461824948806102; state.centerY = 0.11514065680601943; state.zoom = 775.3382808867166;
+    }
+  });
+  const hint = document.getElementById('zoomHint');
+  setTimeout(() => hint.classList.add('visible'), 800);
+  setTimeout(() => hint.classList.remove('visible'), 5500);
+})();
+</script>
+
+<!-- Inline fallbacks -->
+<script type="application/json" id="inline-papers">
+{
+  "publications": [
+    { "id": "amgain-usenix-2026", "year": 2026, "tag": "USENIX", "title": "HAMLOCK: HArdware-Model LOgically Combined attacK", "authors": [{"name":"Sanskar Amgain","equal":true},{"name":"Devan Lobo","equal":true},{"name":"Ahrin Chatterjee","equal":true}], "moreAuthors": 2, "venue": "In", "status": "Accepted at USENIX Security 2026" },
+    { "id": "koju-demi-2025", "year": 2025, "tag": "DEMI", "title": "Surgical Vision World Model", "authors": [{"name":"S. Koju"},{"name":"S. Bastola"},{"name":"Prashant Shrestha"}], "moreAuthors": 4, "venue": "In", "status": "MICCAI Workshop on Data Engineering in Medical Imaging (DEMI), 2025" },
+    { "id": "mclean-biorxiv-2025", "year": 2025, "tag": "bioRxiv", "tagOutline": true, "title": "Multilevel-consistency of social behaviour in a cockroach", "authors": [{"name":"C. J. McLean"},{"name":"Sanskar Amgain"},{"name":"Binod Bhattarai"},{"name":"D. N. Fisher"}], "moreAuthors": 0, "venue": "bioRxiv 2025-08" },
+    { "id": "amgain-ksim-2024", "year": 2024, "tag": "Preprint", "tagOutline": true, "title": "Local K-Similarity Constraint for Federated Learning with Label Noise", "authors": [{"name":"Sanskar Amgain","equal":true},{"name":"Prashant Shrestha","equal":true},{"name":"Y. R. Shrestha"}], "moreAuthors": 3, "venue": "Preprint" },
+    { "id": "poudel-miccai-2024", "year": 2024, "tag": "MICCAI", "title": "CAR-MFL: Cross-Modal Augmentation by Retrieval for Multimodal Federated Learning with Missing Modalities", "authors": [{"name":"Pranav Poudel"},{"name":"Prashant Shrestha","equal":true},{"name":"Sanskar Amgain","equal":true}], "moreAuthors": 3, "venue": "In", "status": "Accepted at MICCAI 2024" },
+    { "id": "khanal-embc-2024", "year": 2024, "tag": "EMBC", "title": "Investigating the Robustness of Vision Transformers against Label Noise in Medical Image Classification", "authors": [{"name":"Bidur Khanal"},{"name":"Prashant Shrestha","equal":true},{"name":"Sanskar Amgain","equal":true}], "moreAuthors": 3, "venue": "In", "status": "Accepted at EMBC 2024" },
+    { "id": "amgain-ipcai-2024", "year": 2024, "tag": "IPCAI", "title": "Investigation of Federated Learning Algorithms for Retinal Optical Coherence Tomography Image Classification with Statistical Heterogeneity", "authors": [{"name":"Sanskar Amgain","equal":true},{"name":"Prashant Shrestha","equal":true},{"name":"Sophia Bano"}], "moreAuthors": 5, "venue": "In", "status": "Accepted at IPCAI 2024" },
+    { "id": "shrestha-arxiv-2023", "year": 2023, "tag": "arXiv", "tagOutline": true, "title": "Medical Vision Language Pretraining: A survey", "authors": [{"name":"Prashant Shrestha","equal":true},{"name":"Sanskar Amgain","equal":true},{"name":"Bidur Khanal"}], "moreAuthors": 2, "venue": "arXiv preprint arXiv:2312.06224", "url": "https://arxiv.org/abs/2312.06224" }
+  ]
+}
+</script>
+
+<script type="application/json" id="inline-selected-papers">
+{
+  "publications": [
+    { "id": "amgain-usenix-2026", "year": 2026, "tag": "USENIX", "title": "HAMLOCK: HArdware-Model LOgically Combined attacK", "authors": [{"name":"Sanskar Amgain","equal":true},{"name":"Devan Lobo","equal":true},{"name":"Ahrin Chatterjee","equal":true}], "moreAuthors": 2, "venue": "In", "status": "Accepted at USENIX Security 2026" },
+    { "id": "amgain-ipcai-2024", "year": 2024, "tag": "IPCAI", "title": "Investigation of Federated Learning Algorithms for Retinal Optical Coherence Tomography Image Classification with Statistical Heterogeneity", "authors": [{"name":"Sanskar Amgain","equal":true},{"name":"Prashant Shrestha","equal":true},{"name":"Sophia Bano"}], "moreAuthors": 5, "venue": "In", "status": "Accepted at IPCAI 2024" },
+    { "id": "poudel-miccai-2024", "year": 2024, "tag": "MICCAI", "title": "CAR-MFL: Cross-Modal Augmentation by Retrieval for Multimodal Federated Learning with Missing Modalities", "authors": [{"name":"Pranav Poudel"},{"name":"Prashant Shrestha","equal":true},{"name":"Sanskar Amgain","equal":true}], "moreAuthors": 3, "venue": "In", "status": "Accepted at MICCAI 2024" },
+    { "id": "khanal-embc-2024", "year": 2024, "tag": "EMBC", "title": "Investigating the Robustness of Vision Transformers against Label Noise in Medical Image Classification", "authors": [{"name":"Bidur Khanal"},{"name":"Prashant Shrestha","equal":true},{"name":"Sanskar Amgain","equal":true}], "moreAuthors": 3, "venue": "In", "status": "Accepted at EMBC 2024" }
+  ]
+}
+</script>
+
+<script type="application/json" id="inline-blog-posts">
+{
+  "posts": [
+    { "id": "cuda-programming", "title": "Introduction to CUDA Programming", "date": "2024-07-06", "readTime": "6 min read", "tags": ["2024"], "external": true, "url": "https://medium.com/@sanskaramgain/introduction-to-cuda-programming", "source": "medium.com" },
+    { "id": "intro-gan", "title": "Introduction to Generative Adversarial Network", "date": "2023-07-14", "readTime": "7 min read", "tags": ["2023","GAN","Generative","Networks"], "file": "./blog/gan.md" },
+    { "id": "templates-compile-time", "title": "Templates and Compile Time Execution", "date": "2023-01-08", "readTime": "6 min read", "tags": ["2023"], "external": true, "url": "https://medium.com/@sanskaramgain/templates-and-compile-time-execution", "source": "medium.com" }
+  ]
+}
+</script>
+
+<!-- =========================================================================
+     PUBLICATIONS LOADER (unchanged)
+     ========================================================================= -->
+<script>
+(async () => {
+  const escapeHTML = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+  async function loadJson(externalPath, inlineId) {
+    try {
+      const res = await fetch(externalPath, { cache: 'no-cache' });
+      if (res.ok) return (await res.json()).publications || [];
+    } catch (_) {}
+    const inline = document.getElementById(inlineId);
+    if (inline) {
+      try { return JSON.parse(inline.textContent).publications || []; }
+      catch (err) { console.error(`Inline JSON #${inlineId} malformed:`, err); }
+    }
+    return null;
+  }
+
+  function showError(containerId, file) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const msg = location.protocol === 'file:'
+      ? `Couldn't load <code>${file}</code>. Serve via HTTP — <code>python -m http.server</code>.`
+      : `Couldn't load <code>${file}</code>. Check the console.`;
+    el.innerHTML = `<div class="pubs-error">${msg}</div>`;
+  }
+
+  function renderAuthors(authors = [], moreAuthors = 0) {
+    const parts = authors.map(a => `${escapeHTML(a.name)}${a.equal ? '<sup>*</sup>' : ''}`);
+    let html = parts.join(', ');
+    if (moreAuthors > 0) html += `, and <span class="more-authors">${moreAuthors} more author${moreAuthors === 1 ? '' : 's'}</span>`;
+    return html;
+  }
+  function tagHTML(pub) {
+    const outlineStyle = 'background: transparent; color: var(--fg-dim); border: 1px solid var(--border-strong);';
+    const style = pub.tagOutline ? ` style="${outlineStyle}"` : '';
+    return `<span class="tag"${style}>${escapeHTML(pub.tag)}</span>`;
+  }
+  function renderPub(pub) {
+    const venueLine = pub.venue ? `<div class="pub-venue"><em>${escapeHTML(pub.venue)}</em>${pub.year ? `, ${pub.year}` : ''}</div>` : '';
+    const statusLine = pub.status ? `<div class="pub-accepted">${escapeHTML(pub.status)}</div>` : '';
+    let btn = '';
+    if (pub.bibtex) btn = `<button class="bib-btn" data-bibtex="${escapeHTML(pub.bibtex)}">BIB</button>`;
+    else if (pub.url) btn = `<a class="bib-btn" href="${escapeHTML(pub.url)}" target="_blank" rel="noopener">LINK</a>`;
+    return `<article class="pub">${tagHTML(pub)}<div><div class="pub-title">${escapeHTML(pub.title)}</div><div class="pub-authors">${renderAuthors(pub.authors, pub.moreAuthors)}</div>${venueLine}${statusLine}${btn}</div></article>`;
+  }
+  function renderFlat(pubs, id) {
+    const c = document.getElementById(id); if (!c) return;
+    c.innerHTML = pubs.length ? pubs.map(renderPub).join('') : '<div class="pubs-loading">No publications yet.</div>';
+  }
+  function renderByYear(pubs, id) {
+    const c = document.getElementById(id); if (!c) return;
+    if (!pubs.length) { c.innerHTML = '<div class="pubs-loading">No publications yet.</div>'; return; }
+    const byYear = new Map();
+    for (const p of pubs) { const y = p.year || 'Undated'; if (!byYear.has(y)) byYear.set(y, []); byYear.get(y).push(p); }
+    const years = [...byYear.keys()].sort((a, b) => b - a);
+    c.innerHTML = years.map(y => `<div class="year-group"><div class="year-watermark">${y}</div><div class="pub-list">${byYear.get(y).map(renderPub).join('')}</div></div>`).join('');
+  }
+  document.body.addEventListener('click', e => {
+    const btn = e.target.closest('button.bib-btn'); if (!btn) return;
+    const bib = btn.dataset.bibtex; if (!bib) return;
+    navigator.clipboard?.writeText(bib).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'COPIED'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1400);
+    });
+  });
+
+  const [featured, all] = await Promise.all([
+    loadJson('./assets/selected_papers.json', 'inline-selected-papers'),
+    loadJson('./assets/papers.json', 'inline-papers'),
+  ]);
+  if (featured) renderFlat(featured, 'selected-pubs-container'); else showError('selected-pubs-container', 'assets/selected_papers.json');
+  if (all) renderByYear(all, 'all-pubs-container'); else showError('all-pubs-container', 'assets/papers.json');
+})();
+</script>
+
+<!-- =========================================================================
+     BLOG LOADER + MARKDOWN POST RENDERER
+     ========================================================================= -->
+<script>
+(async () => {
+  const escapeHTML = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+  // Load blog posts index (external → inline fallback)
+  async function loadBlogIndex() {
+    try {
+      const res = await fetch('./assets/blog_posts.json', { cache: 'no-cache' });
+      if (res.ok) {
+        console.log('✓ Loaded blog_posts.json');
+        return (await res.json()).posts || [];
+      }
+    } catch (_) {}
+    const inline = document.getElementById('inline-blog-posts');
+    if (inline) {
+      try {
+        console.log('ℹ Blog posts from inline fallback');
+        return JSON.parse(inline.textContent).posts || [];
+      } catch (err) { console.error('Inline blog_posts malformed:', err); }
+    }
+    return null;
+  }
+
+  let blogPosts = [];
+
+  // Initialize on page load. Exposed as a promise so that renderPostView
+  // (which may be called before this completes, e.g. when the page loads
+  // directly on a #blog/{id} URL) can await it.
+  const initBlog = (async () => {
+    blogPosts = (await loadBlogIndex()) || [];
+    renderBlogList(blogPosts);
+  })();
+
+  // Render list of posts on the /blog page
+  function renderBlogList(posts) {
+    const container = document.getElementById('blog-list-container');
+    if (!container) return;
+    if (!posts || !posts.length) {
+      container.innerHTML = '<div class="pubs-loading">No posts yet.</div>';
+      return;
+    }
+    // Newest first
+    const sorted = [...posts].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    container.innerHTML = sorted.map(post => {
+      const extIcon = post.external
+        ? `<svg class="ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>`
+        : '';
+      const sourceLine = post.source ? `<span class="sep">·</span><span>${escapeHTML(post.source)}</span>` : '';
+      const dateStr = formatDate(post.date);
+      const tagsHTML = (post.tags || []).map(t => {
+        if (/^\d{4}$/.test(t))    return `<span class="post-tag">📅 ${t}</span>`;
+        if (t.match(/^#/))         return `<span class="post-tag">${t}</span>`;
+        return `<span class="post-tag">🏷 ${t}</span>`;
+      }).join('');
+      const href = post.external ? post.url : `#blog/${post.id}`;
+      const target = post.external ? ' target="_blank" rel="noopener"' : '';
+      return `
+        <article class="post">
+          <h3 class="post-title">
+            <a href="${escapeHTML(href)}"${target} data-post-id="${escapeHTML(post.id)}">${escapeHTML(post.title)}</a>
+            ${extIcon}
+          </h3>
+          <div class="post-meta">
+            <span>${escapeHTML(post.readTime || '')}</span>
+            <span class="sep">·</span>
+            <span>${dateStr}</span>
+            ${sourceLine}
+          </div>
+          <div class="post-tags">${tagsHTML}</div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' });
+  }
+
+  // Pre-process Jekyll's liquid tags so marked can handle the rest
+  function preprocessMarkdown(md) {
+    // Strip YAML frontmatter
+    md = md.replace(/^---[\s\S]*?\n---\s*\n?/, '');
+    // Convert {% include figure.liquid ... path="..." ... %} to markdown images
+    md = md.replace(
+      /\{%\s*include\s+figure\.liquid[^%]*?path\s*=\s*"([^"]+)"[^%]*?%\}/g,
+      (_, path) => {
+        // Jekyll paths are relative to site root — prefix with ./ if needed
+        const src = path.startsWith('/') || path.startsWith('http') || path.startsWith('./')
+          ? path : `./${path}`;
+        return `![](${src})`;
+      }
+    );
+    return md;
+  }
+
+  async function renderPostView(postId) {
+    // Wait until the blog index has loaded (may still be pending if the user
+    // landed directly on a #blog/{id} URL).
+    await initBlog;
+
+    const post = blogPosts.find(p => p.id === postId);
+    const contentEl  = document.getElementById('postArticleContent');
+    const titleEl    = document.getElementById('postArticleTitle');
+    const metaEl     = document.getElementById('postArticleMeta');
+
+    if (!post) {
+      titleEl.textContent = 'Post not found';
+      metaEl.innerHTML = '';
+      contentEl.innerHTML = `<div class="pubs-error">No post with id <code>${escapeHTML(postId)}</code>.</div>`;
+      return;
+    }
+
+    // External posts just open the URL — shouldn't reach here normally
+    if (post.external) {
+      window.open(post.url, '_blank', 'noopener');
+      location.hash = '#blog';
+      return;
+    }
+
+    titleEl.textContent = post.title;
+    metaEl.innerHTML = `
+      <span>${escapeHTML(post.readTime || '')}</span>
+      <span>·</span>
+      <span>${formatDate(post.date)}</span>
+      ${(post.tags || []).map(t => `<span class="meta-tag">• ${escapeHTML(t)}</span>`).join('')}
+    `;
+    contentEl.innerHTML = '<div class="pubs-loading">Loading post…</div>';
+
+    try {
+      const res = await fetch(post.file, { cache: 'no-cache' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const raw = await res.text();
+      const md  = preprocessMarkdown(raw);
+
+      // Render markdown → HTML
+      const html = window.marked ? marked.parse(md) : `<pre>${escapeHTML(md)}</pre>`;
+      contentEl.innerHTML = html;
+
+      // Math rendering (KaTeX auto-render)
+      if (window.renderMathInElement) {
+        window.renderMathInElement(contentEl, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true  },
+            { left: '$',  right: '$',  display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          throwOnError: false
+        });
+      }
+
+      // Syntax highlighting
+      if (window.hljs) {
+        contentEl.querySelectorAll('pre code').forEach(el => window.hljs.highlightElement(el));
+      }
+    } catch (err) {
+      console.error('Failed to load post:', err);
+      const msg = location.protocol === 'file:'
+        ? `Couldn't load <code>${escapeHTML(post.file)}</code>. Serve via HTTP — <code>python -m http.server</code> — then reload.`
+        : `Couldn't load <code>${escapeHTML(post.file)}</code>. Check the console.`;
+      contentEl.innerHTML = `<div class="pubs-error">${msg}</div>`;
+    }
+  }
+
+  // Intercept list clicks for internal posts
+  document.getElementById('blog-list-container').addEventListener('click', e => {
+    const link = e.target.closest('a[data-post-id]');
+    if (!link) return;
+    const postId = link.dataset.postId;
+    const post = blogPosts.find(p => p.id === postId);
+    if (!post || post.external) return; // external: let the browser handle the normal link
+    e.preventDefault();
+    location.hash = `#blog/${postId}`;
+  });
+
+  // Back button
+  document.getElementById('blogBack').addEventListener('click', () => {
+    location.hash = '#blog';
+  });
+
+  // Expose for the router
+  window.__renderPostView = renderPostView;
+  window.__getBlogPosts = () => blogPosts;
+
+  // Wait for the initial load so errors surface in the console
+  await initBlog;
+})();
+</script>
+
+<!-- =========================================================================
+     PAGE ROUTING (hash-based, supports #blog/{id} for post detail)
+     ========================================================================= -->
+<script>
+  const pages = document.querySelectorAll('.page');
+  const links = document.querySelectorAll('.nav-link');
+  const navBrand = document.getElementById('navBrand');
+  const mainEl = document.querySelector('main');
+
+  function showPage(id, { pushHash = true } = {}) {
+    pages.forEach(p => p.classList.toggle('active', p.id === id));
+    // Highlight the nav link that "owns" this page (blog-post → blog)
+    const ownerNav = id === 'blog-post' ? 'blog' : id;
+    links.forEach(l => l.classList.toggle('active', l.dataset.page === ownerNav));
+    navBrand.classList.toggle('visible', id !== 'about');
+    // Darker backdrop when reading a post
+    mainEl.classList.toggle('reading', id === 'blog-post');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function navigate() {
+    const hash = location.hash.slice(1); // strip leading '#'
+    if (hash.startsWith('blog/')) {
+      const postId = hash.slice(5);
+      showPage('blog-post');
+      if (window.__renderPostView) window.__renderPostView(postId);
+      return;
+    }
+    if (['about', 'blog', 'publications'].includes(hash)) {
+      showPage(hash);
+      return;
+    }
+    showPage('about');
+  }
+
+  // Nav link clicks
+  links.forEach(l => l.addEventListener('click', () => {
+    location.hash = '#' + l.dataset.page;
+  }));
+
+  window.addEventListener('hashchange', navigate);
+  navigate(); // initial route
+
+  // Publications filter
+  const filter = document.getElementById('pubFilter');
+  filter.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('#publications .pub').forEach(pub => {
+      pub.classList.toggle('hidden', q && !pub.innerText.toLowerCase().includes(q));
+    });
+    document.querySelectorAll('#publications .year-group').forEach(grp => {
+      grp.classList.toggle('empty', grp.querySelectorAll('.pub:not(.hidden)').length === 0);
+    });
+  });
+
+  // ⌘K → Publications filter
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      location.hash = '#publications';
+      setTimeout(() => filter.focus(), 100);
+    }
+  });
+</script>
+
+</body>
 </html>

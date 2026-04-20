@@ -1,0 +1,68 @@
+{
+  "publications": [
+    {
+      "id": "amgain-usenix-2026",
+      "year": 2026,
+      "tag": "USENIX",
+      "title": "HAMLOCK: HArdware-Model LOgically Combined attacK",
+      "authors": [
+        { "name": "Sanskar Amgain", "equal": true },
+        { "name": "Devan Lobo", "equal": true },
+        { "name": "Ahrin Chatterjee", "equal": true }
+      ],
+      "moreAuthors": 2,
+      "venue": "In",
+      "status": "Accepted at USENIX Security 2026",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "amgain-ipcai-2024",
+      "year": 2024,
+      "tag": "IPCAI",
+      "title": "Investigation of Federated Learning Algorithms for Retinal Optical Coherence Tomography Image Classification with Statistical Heterogeneity",
+      "authors": [
+        { "name": "Sanskar Amgain", "equal": true },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sophia Bano" }
+      ],
+      "moreAuthors": 5,
+      "venue": "In",
+      "status": "Accepted at IPCAI 2024",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "poudel-miccai-2024",
+      "year": 2024,
+      "tag": "MICCAI",
+      "title": "CAR-MFL: Cross-Modal Augmentation by Retrieval for Multimodal Federated Learning with Missing Modalities",
+      "authors": [
+        { "name": "Pranav Poudel" },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sanskar Amgain", "equal": true }
+      ],
+      "moreAuthors": 3,
+      "venue": "In",
+      "status": "Accepted at MICCAI 2024",
+      "url": "",
+      "bibtex": ""
+    },
+    {
+      "id": "khanal-embc-2024",
+      "year": 2024,
+      "tag": "EMBC",
+      "title": "Investigating the Robustness of Vision Transformers against Label Noise in Medical Image Classification",
+      "authors": [
+        { "name": "Bidur Khanal" },
+        { "name": "Prashant Shrestha", "equal": true },
+        { "name": "Sanskar Amgain", "equal": true }
+      ],
+      "moreAuthors": 3,
+      "venue": "In",
+      "status": "Accepted at EMBC 2024",
+      "url": "",
+      "bibtex": ""
+    }
+  ]
+}
